@@ -3,6 +3,7 @@ CXX	:= g++
 all:  sfinae_fix tag_usual priority_raw priority static_if sfinae
 
 sfinae: sfinae.cpp
+	@echo ">>>> Does not compile... because of ambiguous subroutine call"
 	$(CXX) -std=c++11 sfinae.cpp -o sfinae
 
 sfinae_fix: sfinae_fix.cpp
