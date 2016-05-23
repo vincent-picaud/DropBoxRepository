@@ -329,7 +329,7 @@ you get, on your terminal:
 
 * A remark concerning CPU
 
-During benchmark you must use *performance* mode for your CPU. To setup your *cpu governance mode* I process as follow.
+During benchmark you must use *performance* mode for your CPU. To setup your *cpu governance mode* you can do as follow.
 
 Tested on *Debian*, source of information [[https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/7/html/Power_Management_Guide/cpufreq_governors.html][here]].
 
@@ -370,12 +370,12 @@ It also warns you if you are in debug mode:
 Code can be found [[https://github.com/vincent-picaud/DropBoxRepository/tree/master/Blog/Bench][here]]
 
 #+ATTR_WP: :syntaxhl light=true
-#+BEGIN_SRC cmake :tangle yes :tangle ./code/CMakeLists.txt :mkdirp yes :tangle-mode (identity #o666) :noweb yes :export none 
+#+BEGIN_SRC cmake :tangle yes :tangle ./code/CMakeLists.txt :mkdirp yes :tangle-mode (identity #o666) :noweb yes :exports none
 <<Master_CMakeList>>
 #+END_SRC
 
 #+ATTR_WP: :syntaxhl light=true
-#+BEGIN_SRC cmake :tangle yes :tangle ./code/cmake/ConfigSafeGuards.cmake :mkdirp yes :tangle-mode (identity #o666) :noweb yes :export none  
+#+BEGIN_SRC cmake :tangle yes :tangle ./code/cmake/ConfigSafeGuards.cmake :mkdirp yes :tangle-mode (identity #o666) :noweb yes :exports none 
 # Adapted from: https://github.com/bast/cmake-example/tree/master/cmake
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -400,22 +400,22 @@ endif()
 #+END_SRC
 
 #+ATTR_WP: :syntaxhl light=true
-#+BEGIN_SRC cmake :tangle yes :tangle ./code/cmake/ConfigGBench.cmake :mkdirp yes :tangle-mode (identity #o666) :noweb yes :export none 
+#+BEGIN_SRC cmake :tangle yes :tangle ./code/cmake/ConfigGBench.cmake :mkdirp yes :tangle-mode (identity #o666) :noweb yes :exports none
 <<ConfigGBench>>
 #+END_SRC
 
 #+ATTR_WP: :syntaxhl light=true
-#+BEGIN_SRC cmake :tangle yes :tangle ./code/bench/CMakeLists.txt :mkdirp yes :tangle-mode (identity #o666) :noweb yes :export none 
+#+BEGIN_SRC cmake :tangle yes :tangle ./code/bench/CMakeLists.txt :mkdirp yes :tangle-mode (identity #o666) :noweb yes :exports none
 <<Bench_CMakeLists>>
 #+END_SRC
 
 #+ATTR_WP: :syntaxhl light=true
-#+BEGIN_SRC c++ :tangle yes :tangle ./code/bench/one_example.cpp :mkdirp yes :tangle-mode (identity #o666) :noweb yes :export none 
+#+BEGIN_SRC c++ :tangle yes :tangle ./code/bench/one_example.cpp :mkdirp yes :tangle-mode (identity #o666) :noweb yes :exports none
 <<CppBenchExample>>
 #+END_SRC
 
 #+ATTR_WP: :syntaxhl light=true
-#+BEGIN_SRC cmake :tangle yes :tangle ./code/cmake/DownloadProject.cmake :mkdirp yes :tangle-mode (identity #o666) :noweb yes :export none
+#+BEGIN_SRC cmake :tangle yes :tangle ./code/cmake/DownloadProject.cmake :mkdirp yes :tangle-mode (identity #o666) :noweb yes :exports none
 # From https://github.com/Crascit/DownloadProject
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -565,7 +565,7 @@ endfunction()
 #+END_SRC
 
 #+ATTR_WP: :syntaxhl light=true
-#+BEGIN_SRC cmake :tangle yes :tangle ./code/cmake/DownloadProject.CMakeLists.cmake.in :mkdirp yes :tangle-mode (identity #o666) :noweb yes :export none
+#+BEGIN_SRC cmake :tangle yes :tangle ./code/cmake/DownloadProject.CMakeLists.cmake.in :mkdirp yes :tangle-mode (identity #o666) :noweb yes :exports none
 cmake_minimum_required(VERSION 2.8.2)
 
 project(${DL_ARGS_PROJ}-download NONE)
