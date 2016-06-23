@@ -1,0 +1,147 @@
+#+BLOG: wordpress
+#+POSTID: 255
+#+DATE: [2016-06-23 Thu 18:04]
+#+OPTIONS: toc:nil num:nil todo:nil pri:nil tags:nil ^:nil
+#+CATEGORY: Emacs
+#+TAGS:
+#+DESCRIPTION:
+#+TITLE: Some Emacs reminders/tricks
+
+Some Emacs reminders, to be updated from time to time
+
+* Emacs history
+
+You can store your compile command, regex by telling to Emacs to store all these stuff.
+
+Simply add 
+#+BEGIN_SRC lisp
+(savehist-mode 1)
+(setq savehist-additional-variables '(compile-command kill-ring search-ring regexp-search-ring))
+#+END_SRC
+to your emacs configuration file
+
+* Regex
+
+When you use [[https://www.emacswiki.org/emacs/RegularExpression][regular expressions]], the commands like *M-x
+regexp-builder*, *M-x find-grep-dired*, *M-x query-replace-regexp*...
+have a tricky behavior. The default behavior is *read* mode which
+requires "*double escaping*". For instance you must type:
+#+BEGIN_SRC lisp
+\\(foo\\|bar\\)
+#+END_SRC
+
+It is much better to use the *string* mode which do not have this issue, for example:
+#+BEGIN_SRC lisp
+\(foo\|bar\)
+#+END_SRC
+
+You can either use customize your default mode (*M-x customize-variable RET
+reb-re-syntax RET*) or set the variable (*reb-re-syntax*) directly in your *emacs* configuration file:
+
+#+BEGIN_SRC lisp
+(require 're-builder)
+(setq reb-re-syntax 'string)
+#+END_SRC
+
+
+* Clang-Emacs integration
+
+The [[http://clang.llvm.org/docs/ClangFormat.html][doc]] says:
+
+#+BEGIN_SRC lisp
+(load "<path-to-clang>/tools/clang-format/clang-format.el")
+(global-set-key [C-M-tab] 'clang-format-region)
+#+END_SRC
+
+It is certainly more convenient to:
+- restrict this to C or/and C++ modes
+- to format the whole buffer without having to select a region
+this can be done by:
+
+#+BEGIN_SRC lisp
+(require 'clang-format)
+(load "<path-to-clang>/tools/clang-format/clang-format.el")
+(define-key c++-mode-map (kbd "<C-M-tab>") 'clang-format-buffer)
+#+END_SRC
+
+(personally I prefer "*<backtap>*" to "*<C-M-tab>*")
+
+* Rectangular selection
+
+You can select a rectangular region with *C-x space*.
+
+# +CAPTION: Select a rectangular region
+[[./rect.png]]
+
+can be useful for tabular data...
+
+* Going faster
+
+** Fast separator
+#+BEGIN_SRC lisp
+//****
+//~~~~~~~~~~~~~~~~
+//================================================================
+#+END_SRC
+
+Simply type:
+- *C-U \**
+- *C-U C-U ~*
+- *C-U C-U C-U =*
+
+** Format your line / comment
+Simply use *M-A*
+
+** Insert shell command in you buffer
+
+Example: *C-U M-! date* to insert the date (invoke shell *date* command)
+
+** Copy your buffer name (with full-path) in the kill ring
+
+Add 
+#+BEGIN_SRC lisp
+(defun copy-full-path-to-kill-ring ()
+  "copy buffer's full path to kill ring"
+  (interactive)
+  (when buffer-file-name
+    (kill-new (file-truename buffer-file-name))))
+(global-set-key (kbd "<f1>") 'copy-full-path-to-kill-ring)
+#+END_SRC
+
+to you *emacs* file. You can use it by pressing *f1* and *C-y* to insert
+*buffer-file-name* where you want.
+
+** Rename a buffer and a file in the same time
+
+Add
+#+BEGIN_SRC lisp
+(defun rename-current-buffer-file ()
+  "Renames current buffer and file it is visiting."
+  (interactive)
+  (let ((name (buffer-name))
+        (filename (buffer-file-name)))
+    (if (not (and filename (file-exists-p filename)))
+        (error "Buffer '%s' is not visiting a file!" name)
+      (let ((new-name (read-file-name "New name: " filename)))
+        (if (get-buffer new-name)
+            (error "A buffer named '%s' already exists!" new-name)
+          (rename-file filename new-name 1)
+          (rename-buffer new-name)
+          (set-visited-file-name new-name)
+          (set-buffer-modified-p nil)
+          (message "File '%s' successfully renamed to '%s'"
+                   name (file-name-nondirectory new-name)))))))
+
+(global-set-key (kbd "<f2>") 'rename-current-buffer-file)
+#+END_SRC
+
+to you *emacs* file. You can use it by pressing *f2*.
+
+** Last but not least
+
+- use [[https://github.com/magit/magit][magit]]
+- use [[http://orgmode.org/][orgmode]]
+- use [[https://github.com/yaruopooner/ac-clang][ac-clang]] or [[https://www.emacswiki.org/emacs/AutoComplete][AutoComplete]]
+- use two or three screens, but not emacs related :-)
+
+# ./rect.png http://pixorblog.files.wordpress.com/2016/06/rect1.png
