@@ -64,7 +64,7 @@ this can be done by:
 (define-key c++-mode-map (kbd "<C-M-tab>") 'clang-format-buffer)
 #+END_SRC
 
-(personally I prefer "*<backtap>*" to "*<C-M-tab>*")
+(personally I prefer "*<backtab>*" to "*<C-M-tab>*")
 
 * Rectangular selection
 
@@ -79,22 +79,22 @@ can be useful for tabular data...
 
 ** Fast separator
 #+BEGIN_SRC lisp
-//****
+//////
 //~~~~~~~~~~~~~~~~
 //================================================================
 #+END_SRC
 
 Simply type:
-- *C-U \**
+- *C-U //*
 - *C-U C-U ~*
 - *C-U C-U C-U =*
 
 ** Format your line / comment
-Simply use *M-A*
+Simply use *M-Q*
 
-** Insert shell command in you buffer
+** Insert shell command in your buffer
 
-Example: *C-U M-! date* to insert the date (invoke shell *date* command)
+Example: *C-U M-! date* to insert the date (invokes shell *date* command)
 
 ** Copy your buffer name (with full-path) in the kill ring
 
