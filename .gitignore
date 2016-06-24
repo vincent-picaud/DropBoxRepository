@@ -5,3 +5,7 @@
 /Blog/TagDispatch/tag_usual
 *~
 **/build/
+/Blog/CSV_Bash/cleaned_insurance.csv
+/Blog/CSV_Bash/cleaned_tricky.csv
+/Blog/CSV_Bash/combined.csv
+/Blog/CSV_Bash/csv_bash.html
