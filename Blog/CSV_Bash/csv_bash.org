@@ -1,0 +1,266 @@
+#+BLOG: wordpress
+#+POSTID: 272
+#+DATE: [2016-06-24 Fri 08:01]
+#+OPTIONS: toc:nil num:nil todo:nil pri:nil tags:nil ^:nil
+#+CATEGORY: CSV, Bash
+#+TAGS:
+#+DESCRIPTION:
+#+TITLE: CSV files and bash 
+
+Recently I was asked to inspect with urgency a *14Gb* CSV file. The
+most effective way I found was to use *bash shell*. The small scripts
+I wrote usually took 2 or 3 minute to process the file.
+
+This post present some shell commands you can use to inspect a CSV file
+
+For the moment I assume that the CSV file does not have quoted strings
+which contain the separator *char*. This case is tricky and you have
+to preprocess the csv file before (see [[*CSV file with quoted strings][CSV file with quoted strings]]).
+
+* First look at your CSV file
+
+You can look the first lines by
+
+#+BEGIN_SRC sh :results verbatim :exports both
+head -7 insurance.csv
+#+END_SRC
+
+#+RESULTS:
+: age,sex,bmi,children,smoker,region,charges
+: 19,female,27.9,0,yes,southwest,16884.924
+: 18,male,33.77,1,no,southeast,1725.5523
+: # a comment
+: 28,male,33,3,no,southeast,4449.462
+
+You can also look the last lines, but beware that the complete file is
+read, which can be long in case of big files.
+
+#+BEGIN_SRC sh :results verbatim :exports both
+tail -7 insurance.csv
+#+END_SRC
+
+#+RESULTS:
+: 23,female,33.4,0,no,southwest,10795.93733
+: 52,female,44.7,3,no,southwest,11411.685
+: 50,male,30.97,3,no,northwest,10600.5483
+: 18,female,31.92,0,no,northeast,2205.9808
+: 18,female,36.85,0,no,southeast,1629.8335
+: 21,female,25.8,0,no,southwest,2007.945
+: 61,female,29.07,0,yes,northwest,29141.3603
+
+Generally the first task is to clean the CSV file:
+
+#+BEGIN_SRC sh :results verbatim :exports code
+cat insurance.csv | grep -v "^#" | sed '/^ *$/d' | sed "1 d" > cleaned_insurance.csv
+#+END_SRC
+
+- grep -v "^#" removes comments
+- sed '/^ *$/d' removes empty line (only spaces, if you want to include tab use ^[ \t])
+- sed "1 d" removes the first line (header if any)
+
+#+RESULTS:
+
+you get something like:
+
+#+BEGIN_SRC sh :results verbatim :exports results
+head -7 cleaned_insurance.csv 
+#+END_SRC
+
+#+RESULTS:
+: 19,female,27.9,0,yes,southwest,16884.924
+: 18,male,33.77,1,no,southeast,1725.5523
+: 28,male,33,3,no,southeast,4449.462
+: 33,male,22.705,0,no,northwest,21984.47061
+: 32,male,28.88,0,no,northwest,3866.8552
+: 31,female,25.74,0,no,southeast,3756.6216
+: 46,female,33.44,1,no,southeast,8240.5896
+
+* Number of rows
+
+This one is easy, just do:
+
+#+BEGIN_SRC sh :results verbatim :exports both
+wc -l cleaned_insurance.csv
+#+END_SRC
+
+#+RESULTS:
+: 1338 cleaned_insurance.csv
+
+* Number of columns
+
+You have to count the number of separators, then add one because of the last column.
+
+If the separator is comma ',' just do:
+
+#+BEGIN_SRC sh :results verbatim :exports both
+cat cleaned_insurance.csv | awk "{print NF}" FS=, | sort -n | uniq
+#+END_SRC
+
+#+RESULTS:
+: 7
+
+Please note that if your CSV file is ill-formed (varying row sizes) you will get several column counts.
+
+* Column extraction
+
+You can extract a set of columns with:
+
+#+BEGIN_SRC sh :results verbatim :exports code
+cat cleaned_insurance.csv | cut -d ',' -f2,4-6
+#+END_SRC
+
+Here we have extracted columns 2 and 4,5,6, you get:
+
+#+BEGIN_SRC sh :results verbatim :exports results
+head -7 cleaned_insurance.csv | cut -d ',' -f2,4-6
+#+END_SRC
+
+#+RESULTS:
+: female,0,yes,southwest
+: male,1,no,southeast
+: male,3,no,southeast
+: male,0,no,northwest
+: male,0,no,northwest
+: female,0,no,southeast
+: female,1,no,southeast
+
+* Count variations of a given column
+
+Given a column number you can sort and count each category. For instance
+
+#+BEGIN_SRC sh :results verbatim :exports both
+cat cleaned_insurance.csv |  cut -d ',' -f6 | sort | uniq -c | nl
+#+END_SRC
+
+#+RESULTS:
+:      1	    324 northeast
+:      2	    325 northwest
+:      3	    364 southeast
+:      4	    325 southwest
+
+
+* Sort according to a given column
+
+You can sort your file according to a given column. Here you have to take care of the data format, /numeric/, /date/...
+
+Here we sort the column 3 which contains /numeric/ data.
+
+#+BEGIN_SRC sh :results verbatim :exports code
+cat cleaned_insurance.csv | sort -t ',' -n -k 3
+#+END_SRC
+
+You get:
+
+#+BEGIN_SRC sh :results verbatim :exports results
+cat cleaned_insurance.csv | sort -t ',' -n -k 3 | head -7
+#+END_SRC
+
+#+RESULTS:
+: 18,male,15.96,0,no,northeast,1694.7964
+: 21,female,16.815,1,no,northeast,3167.45585
+: 38,male,16.815,2,no,northeast,6640.54485
+: 26,female,17.195,2,yes,northeast,14455.64405
+: 18,male,17.29,2,yes,northeast,12829.4551
+: 28,female,17.29,0,no,northeast,3732.6251
+: 37,female,17.29,2,no,northeast,6877.9801
+
+* Filter rows
+
+You can filter your file. For instance if you only want to select line
+with ages 20 and 21 (column 1) or the northeast area (column 6) you
+can use:
+
+#+BEGIN_SRC sh :results verbatim :exports both
+cat cleaned_insurance.csv | awk -F"," '{ if (($1>=20)&&($1<22)&&($6=="northeast")) print;  }'
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+20,female,28.785,0,no,northeast,2457.21115
+21,female,16.815,1,no,northeast,3167.45585
+20,male,27.93,0,no,northeast,1967.0227
+21,male,20.235,3,no,northeast,3861.20965
+21,female,21.85,1,yes,northeast,15359.1045
+21,male,27.36,0,no,northeast,2104.1134
+20,male,40.47,0,no,northeast,1984.4533
+21,female,22.135,0,no,northeast,2585.85065
+21,male,25.745,2,no,northeast,3279.86855
+20,male,30.115,5,no,northeast,4915.05985
+20,male,30.685,0,yes,northeast,33475.81715
+21,male,26.03,0,no,northeast,2102.2647
+20,female,30.59,0,no,northeast,2459.7201
+#+end_example
+
+
+* CSV file with quoted strings
+
+Quoted string CSV file that contains the separator char (here ',') can be tricky to read.
+
+Consider for instance:
+
+#+BEGIN_SRC sh :results verbatim :exports both
+cat tricky.csv
+#+END_SRC
+
+#+RESULTS:
+: 3 ,"hh,1,foo",foo
+: "5,,,5", "1,2,3d,,,something ", foo2
+: test, "col3", foo3
+
+Obviously what was tell before does not work. For instance if you want to count columns, you get:
+
+#+BEGIN_SRC sh :results verbatim :exports both
+cat tricky.csv | awk "{print NF}" FS=, | sort  -n | uniq
+#+END_SRC
+
+#+RESULTS:
+: 3
+: 5
+: 11
+
+For these kind of CSV files the first thing to do is to replace the
+separator char *which are enclosed* by the quotes by another character.
+
+You can do that with (here we remplace ',' by '_', this is the last ",/\1_")
+
+#+BEGIN_SRC sh :exports code
+cat tricky.csv | sed ':a;s/^\(\([^"]*"[^"]*"[^"]*\)*[^"]*"[^"]*\),/\1_/;ta' > cleaned_tricky.csv
+#+END_SRC
+
+#+RESULTS:
+
+you will get
+
+#+BEGIN_SRC sh :results verbatim :exports results
+cat tricky.csv | sed ':a;s/^\(\([^"]*"[^"]*"[^"]*\)*[^"]*"[^"]*\),/\1_/;ta'
+#+END_SRC
+
+#+RESULTS:
+: 3 ,"hh_1_foo",foo
+: "5___5", "1_2_3d___something ", foo2
+: test, "col3", foo3
+
+And you can now use the command we have previously defined. For instance a column count gives
+
+#+BEGIN_SRC sh :results verbatim :exports both
+cat cleaned_tricky.csv | awk "{print NF}" FS=, | sort -n | uniq
+#+END_SRC
+
+#+RESULTS:
+: 3
+
+as expected
+
+I found this trick on [[http://stackoverflow.com/questions/14916159/sed-replace-spaces-within-quotes-with-underscores][http://stackoverflow.com]]
+
+At any moment you can reconstruct the file with its initial separators:
+
+#+BEGIN_SRC sh :results verbatim :exports both
+cat cleaned_tricky.csv | sed ':a;s/^\(\([^"]*"[^"]*"[^"]*\)*[^"]*"[^"]*\)_/\1,/;ta'
+#+END_SRC
+
+#+RESULTS:
+: 3 ,"hh,1,foo",foo
+: "5,,,5", "1,2,3d,,,something ", foo2
+: test, "col3", foo3
+
