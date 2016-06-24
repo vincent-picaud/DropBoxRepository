@@ -8,14 +8,14 @@
 #+TITLE: CSV files and bash 
 
 Recently I was asked to inspect with urgency a *14Gb* CSV file. The
-most effective way I found was to use *bash shell*. The small scripts
-I wrote usually took 2 or 3 minute to process the file.
+most effective way I found was to directly use *bash shell*. The small
+scripts I wrote usually took 2 or 3 minutes to process the file.
 
-This post present some shell commands you can use to inspect a CSV file
+This post presents some shell commands you can use to inspect a CSV file
 
 For the moment I assume that the CSV file does not have quoted strings
-which contain the separator *char*. This case is tricky and you have
-to preprocess the csv file before (see [[*CSV file with quoted strings][CSV file with quoted strings]]).
+which contain the separator. This case is tricky and you have to
+pre-process the CSV file before (see [[*CSV file with quoted strings][CSV file with quoted strings]]).
 
 * First look at your CSV file
 
@@ -55,7 +55,7 @@ cat insurance.csv | grep -v "^#" | sed '/^ *$/d' | sed "1 d" > cleaned_insurance
 #+END_SRC
 
 - grep -v "^#" removes comments
-- sed '/^ *$/d' removes empty line (only spaces, if you want to include tab use ^[ \t])
+- sed '/^ *$/d' removes empty lines (only spaces, if you want to include tab use ^[ \t])
 - sed "1 d" removes the first line (header if any)
 
 #+RESULTS:
@@ -85,6 +85,8 @@ wc -l cleaned_insurance.csv
 
 #+RESULTS:
 : 1338 cleaned_insurance.csv
+
+Hence the file has 1338 lines.
 
 * Number of columns
 
@@ -124,7 +126,7 @@ head -7 cleaned_insurance.csv | cut -d ',' -f2,4-6
 : female,0,no,southeast
 : female,1,no,southeast
 
-* Count variations of a given column
+* Count the number of different items in a given column
 
 Given a column number you can sort and count each category. For instance
 
@@ -166,9 +168,9 @@ cat cleaned_insurance.csv | sort -t ',' -n -k 3 | head -7
 
 * Filter rows
 
-You can filter your file. For instance if you only want to select line
-with ages 20 and 21 (column 1) or the northeast area (column 6) you
-can use:
+You can filter your file. For instance if you only want to select
+lines with ages 20 and 21 (column 1) and from the northeast area
+(column 6) you can use:
 
 #+BEGIN_SRC sh :results verbatim :exports both
 cat cleaned_insurance.csv | awk -F"," '{ if (($1>=20)&&($1<22)&&($6=="northeast")) print;  }'
@@ -191,6 +193,30 @@ cat cleaned_insurance.csv | awk -F"," '{ if (($1>=20)&&($1<22)&&($6=="northeast"
 20,female,30.59,0,no,northeast,2459.7201
 #+end_example
 
+* Combining Columns from Multiple CSVs
+
+Once that you have extracted columns of interest you can combine then into an unique CSV file:
+
+#+BEGIN_SRC sh :results verbatim :exports code
+paste -d , cleaned_insurance.csv cleaned_insurance.csv > combined.csv
+#+END_SRC
+
+which gives:
+
+#+BEGIN_SRC sh :results verbatim :exports results
+paste -d , cleaned_insurance.csv cleaned_insurance.csv | head -7
+#+END_SRC
+
+#+RESULTS:
+: 19,female,27.9,0,yes,southwest,16884.924,19,female,27.9,0,yes,southwest,16884.924
+: 18,male,33.77,1,no,southeast,1725.5523,18,male,33.77,1,no,southeast,1725.5523
+: 28,male,33,3,no,southeast,4449.462,28,male,33,3,no,southeast,4449.462
+: 33,male,22.705,0,no,northwest,21984.47061,33,male,22.705,0,no,northwest,21984.47061
+: 32,male,28.88,0,no,northwest,3866.8552,32,male,28.88,0,no,northwest,3866.8552
+: 31,female,25.74,0,no,southeast,3756.6216,31,female,25.74,0,no,southeast,3756.6216
+: 46,female,33.44,1,no,southeast,8240.5896,46,female,33.44,1,no,southeast,8240.5896
+
+
 
 * CSV file with quoted strings
 
@@ -207,7 +233,7 @@ cat tricky.csv
 : "5,,,5", "1,2,3d,,,something ", foo2
 : test, "col3", foo3
 
-Obviously what was tell before does not work. For instance if you want to count columns, you get:
+Obviously what was shown before does not work. For instance if you want to count columns, you get:
 
 #+BEGIN_SRC sh :results verbatim :exports both
 cat tricky.csv | awk "{print NF}" FS=, | sort  -n | uniq
@@ -221,7 +247,7 @@ cat tricky.csv | awk "{print NF}" FS=, | sort  -n | uniq
 For these kind of CSV files the first thing to do is to replace the
 separator char *which are enclosed* by the quotes by another character.
 
-You can do that with (here we remplace ',' by '_', this is the last ",/\1_")
+You can do that with (here we replace ',' by '_', this is the last ",/\1_")
 
 #+BEGIN_SRC sh :exports code
 cat tricky.csv | sed ':a;s/^\(\([^"]*"[^"]*"[^"]*\)*[^"]*"[^"]*\),/\1_/;ta' > cleaned_tricky.csv
