@@ -141,7 +141,10 @@ to you *emacs* file. You can use it by pressing *f2*.
 
 - use [[https://github.com/magit/magit][magit]]
 - use [[http://orgmode.org/][orgmode]]
+- use [[https://www.emacswiki.org/emacs/Yasnippet][Yasnippet]]
 - use [[https://github.com/yaruopooner/ac-clang][ac-clang]] or [[https://www.emacswiki.org/emacs/AutoComplete][AutoComplete]]
 - use two or three screens, but not emacs related :-)
+
+Feel free to add your own emacs trick by doing a pull request [[https://github.com/vincent-picaud/DropBoxRepository/tree/master/Blog/EmacsNotes][here]].
 
 # ./rect.png http://pixorblog.files.wordpress.com/2016/06/rect1.png
