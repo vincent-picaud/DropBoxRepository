@@ -1,0 +1,640 @@
+#+BLOG: wordpress
+#+POSTID: 236
+#+DATE: [2016-05-14 Sat 18:42]
+#+OPTIONS: toc:nil num:nil todo:nil pri:nil tags:nil ^:nil
+#+CATEGORY: Cpp
+#+TAGS:
+#+DESCRIPTION:
+#+TITLE: Some ruminations on tag dispatching
+
+# To generate the createProject.sh script: C-c C-v t
+# To html-export documentation: C-c C-e h h
+
+* Motivation
+
+Imagine that you have the following matrix type
+
+#+ATTR_WP: :syntaxhl light=true
+#+NAME: MatrixDef
+#+BEGIN_SRC C++
+template<typename T>
+class Matrix {};
+#+END_SRC
+
+Here we have chosen a very simple type but in practice matrix types
+are generally parametrized by a lot of other template parameters like
+matrix dense or sparse type, symmetric shape, dynamic/static
+dimensions...  To convince you, you can have a look at:
+- [[https://bitbucket.org/blaze-lib/blaze/wiki/Matrix%20Types][Blaze library,  Matrix types]]
+- [[https://eigen.tuxfamily.org/dox/classEigen_1_1Matrix.html][Eigen library, Matrix types]]
+just to cite few.
+
+The problems begin when you want to branch to the most
+specialized/effective subroutines to do some computations. For instance if
+you want to perform a matrix product you want to call [[http://www.openblas.net/][BLAS]] or [[https://github.com/flame/blis][BLIS]]
+when T is a supported type and provide a generic subroutines otherwise.
+
+#+ATTR_WP: :syntaxhl light=true
+#+NAME: SFINAE
+#+BEGIN_SRC C++
+template <typename T>
+void matrixProduct(Matrix<T>& AB, const Matrix<T>& A,
+                   const Matrix<T>& B)
+{
+  static_assert(!std::is_same<T, T>::value, /* differed false */
+                "Missing specialization");
+}
+template <typename T>
+typename std::enable_if<std::is_arithmetic<T>::value>::type
+    matrixProduct(Matrix<T>& AB, const Matrix<T>& A,
+                  const Matrix<T>& B)
+{
+  std::cout << "\nUse a generic (in-house) implementation";
+}
+
+template <typename T>
+typename std::enable_if<std::is_same<T, float>::value||std::is_same<T, double>::value>::type
+    matrixProduct(Matrix<T>& AB, const Matrix<T>& A,
+                  const Matrix<T>& B)
+{
+  std::cout << "\nUse a BLAS call";
+}
+#+END_SRC
+
+#+ATTR_WP: :syntaxhl light=true
+#+NAME: code_main
+#+BEGIN_SRC c++
+int main()
+{
+ struct A
+  {
+  };
+
+  Matrix<A> aResult, aM;
+  Matrix<int> iResult, iM;
+  Matrix<double> dResult, dM;
+
+  // matrixProduct(aResult, aM, aM);  // static assert error OK
+  matrixProduct(iResult, iM, iM);  // Error!
+  matrixProduct(dResult, dM, dM);  // Error!
+}
+#+END_SRC
+
+#+ATTR_WP: :syntaxhl light=true
+#+NAME: code_main_ok 
+#+BEGIN_SRC c++ :exports none
+int main()
+{
+ struct A
+  {
+  };
+
+  Matrix<A> aResult, aM;
+  Matrix<int> iResult, iM;
+  Matrix<double> dResult, dM;
+
+  // matrixProduct(aResult, aM, aM);  // static assert error OK
+  matrixProduct(iResult, iM, iM);  // OK!
+  matrixProduct(dResult, dM, dM);  // OK!
+}
+#+END_SRC
+
+The compiler error message is
+#+BEGIN_SRC txt
+...
+error: call of overloaded ‘matrixProduct(Matrix<double>&, Matrix<double>&, Matrix<double>&)’ is ambiguous
+   matrixProduct(dResult, dM, dM);  // Error!
+...
+#+END_SRC
+
+A quick but dirty fix would be:
+#+ATTR_WP: :syntaxhl light=true
+#+NAME: SFINAE_fix
+#+BEGIN_SRC C++
+template <typename T>  
+typename std::enable_if<!std::is_arithmetic<T>::value>::type 
+matrixProduct(Matrix<T>& AB, const Matrix<T>& A,
+                   const Matrix<T>& B)
+{
+  static_assert(!std::is_same<T, T>::value, /* differed false */
+                "Missing specialization");
+}
+template <typename T>
+typename std::enable_if<(std::is_arithmetic<T>::value) &&
+                        (!(std::is_same<T, float>::value ||
+                           std::is_same<T, double>::value))>::type
+    matrixProduct(Matrix<T>& AB, const Matrix<T>& A,
+                  const Matrix<T>& B)
+{
+  std::cout << "\nUse a generic (in-house) implementation";
+}
+
+template <typename T>
+typename std::enable_if<std::is_same<T, float>::value ||
+                        std::is_same<T, double>::value>::type
+    matrixProduct(Matrix<T>& AB, const Matrix<T>& A,
+                  const Matrix<T>& B)
+{
+  std::cout << "\nUse a BLAS call";
+}
+#+END_SRC
+
+However we clearly see that *SFINAE* is not the right solution as we
+have to *manually manage mutual exclusion* to avoid ambiguities.  This becomes untrackable
+as soon as the number of possible specializations increase.
+
+* Tag dispatch
+
+The problem can be classically solved using tag dispatch to disambiguate the subroutine call:
+
+#+ATTR_WP: :syntaxhl light=true
+#+NAME: Attempt_usual
+#+BEGIN_SRC c++
+struct UndefinedTag;
+
+template <typename T>
+void matrixProduct(const UndefinedTag&, Matrix<T>& AB,
+                   const Matrix<T>& A, const Matrix<T>& B)
+{
+  static_assert(!std::is_same<T, T>::value, /* differed false */
+                "Missing specialization");
+}
+
+struct GenericTag;
+
+template <typename T>
+typename std::enable_if<std::is_arithmetic<T>::value>::type
+    matrixProduct(const GenericTag&, Matrix<T>& AB,
+                  const Matrix<T>& A, const Matrix<T>& B)
+{
+  std::cout << "\nUse a generic (in-house) implementation";
+}
+
+struct BlasTag;
+
+template <typename T>
+typename std::enable_if<std::is_same<T, float>::value ||
+                        std::is_same<T, double>::value>::type
+    matrixProduct(const BlasTag&, Matrix<T>& AB, const Matrix<T>& A,
+                  const Matrix<T>& B)
+{
+  std::cout << "\nUse a BLAS call";
+}
+
+// Define a Tag hierarchy
+// -> this induce an order in the dispatch
+struct UndefinedTag
+{
+};
+
+struct GenericTag : UndefinedTag
+{
+};
+
+struct BlasTag : GenericTag
+{
+};
+
+template <typename T>
+void matrixProduct(Matrix<T>& AB, const Matrix<T>& A,
+                   const Matrix<T>& B)
+{
+  matrixProduct(BlasTag(), AB, A, B);
+}
+#+END_SRC
+
+What I do not like with this approach is:
+- *forward declarations* of tags are required,
+- tag hierarchy is defined *outside* the main *matrixProduct* function,
+- we do not have a fine control if we want to mix *local* and *global* priority setup
+
+* Attempt for a more flexible implementation
+
+We can avoid tag forward declaration by using a "generic" priority
+mechanism defined as follow:
+
+#+ATTR_WP: :syntaxhl light=true
+#+NAME: Priority_Class
+#+BEGIN_SRC c++
+template <unsigned int N>
+struct PriorityTag : PriorityTag<N - 1>
+{
+};
+
+template <>
+struct PriorityTag<0>
+{
+};
+#+END_SRC
+
+Now the implementation would be:
+
+#+ATTR_WP: :syntaxhl light=true
+#+NAME: Priority_Raw
+#+BEGIN_SRC c++
+template <typename T>
+void matrixProduct(const PriorityTag<0>&, Matrix<T>& AB,
+                   const Matrix<T>& A, const Matrix<T>& B)
+{
+  static_assert(!std::is_same<T, T>::value, /* differed false */
+                "Missing specialization");
+}
+
+template <typename T>
+typename std::enable_if<std::is_arithmetic<T>::value>::type
+    matrixProduct(const PriorityTag<1>&, Matrix<T>& AB,
+                  const Matrix<T>& A, const Matrix<T>& B)
+{
+  std::cout << "\nUse a generic (in-house) implementation";
+}
+
+template <typename T>
+typename std::enable_if<std::is_same<T, float>::value ||
+                        std::is_same<T, double>::value>::type
+    matrixProduct(const PriorityTag<2>&, Matrix<T>& AB, const Matrix<T>& A,
+                  const Matrix<T>& B)
+{
+  std::cout << "\nUse a BLAS call";
+}
+
+template <typename T>
+void matrixProduct(Matrix<T>& AB, const Matrix<T>& A,
+                   const Matrix<T>& B)
+{
+  matrixProduct(PriorityTag<2>(), AB, A, B);
+}
+#+END_SRC
+
+Now we do not need forward declarations anymore but the resulting code
+is not easy to understand. It would be better to have something like
+*UseBlas* instead of *PriorityTag<2>*. Moreover we want a mechanism
+to easily modify priority order.
+
+With *c++14*, the *enum class* comes to the rescue, we get:
+
+#+ATTR_WP: :syntaxhl light=true
+#+NAME: Priority
+#+BEGIN_SRC c++
+template <typename PRIORITY, PRIORITY integer>
+using PriorityConfiguration = PriorityTag<static_cast<
+    typename std::underlying_type<PRIORITY>::type>(integer)>;
+
+template <typename PRIORITY, typename T>
+void matrixProduct(
+    const PriorityConfiguration<PRIORITY, PRIORITY::Undefined>&,
+    Matrix<T>& AB, const Matrix<T>& A, const Matrix<T>& B)
+{
+  static_assert(!std::is_same<T, T>::value, /* differed false */
+                "Missing specialization");
+}
+
+template <typename PRIORITY, typename T>
+typename std::enable_if<std::is_arithmetic<T>::value>::type
+    matrixProduct(
+        const PriorityConfiguration<PRIORITY, PRIORITY::Generic>&,
+        Matrix<T>& AB, const Matrix<T>& A, const Matrix<T>& B)
+{
+  std::cout << "\nUse a generic (in-house) implementation";
+}
+
+template <typename PRIORITY, typename T>
+typename std::enable_if<std::is_same<T, float>::value ||
+                        std::is_same<T, double>::value>::type
+    matrixProduct(
+        const PriorityConfiguration<PRIORITY, PRIORITY::Blas>&,
+        Matrix<T>& AB, const Matrix<T>& A, const Matrix<T>& B)
+{
+  std::cout << "\nUse a BLAS call";
+}
+
+template <typename T>
+void matrixProduct(Matrix<T>& AB, const Matrix<T>& A,
+                   const Matrix<T>& B)
+{
+  enum class LocalPriority : unsigned int
+  {
+    Undefined,
+    Generic,
+    Blas, 
+
+    END
+  };
+
+  matrixProduct<LocalPriority>(
+      PriorityConfiguration<LocalPriority, LocalPriority::END>(), AB,
+      A, B);
+}
+#+END_SRC
+
+With this approach it is very easy to:
+
+ - *modify priority*
+
+#+ATTR_WP: :syntaxhl light=true
+#+BEGIN_SRC c++ 
+  enum class LocalPriority : unsigned int
+  {
+    Undefined,
+    Blas,      // instead of Generic
+    Generic,   // instead of Blas
+
+    END
+  };
+#+END_SRC
+
+ - *dismiss some specializations*
+
+#+ATTR_WP: :syntaxhl light=true
+#+BEGIN_SRC c++ 
+  enum class LocalPriority : unsigned int
+  {
+    Undefined,
+    Generic,
+
+    END,
+
+    Blas
+  };
+#+END_SRC
+
+ - *use a local or a global priority setup*
+
+#+ATTR_WP: :syntaxhl light=true
+#+BEGIN_SRC c++
+enum class GlobalPriority : unsigned int
+{
+  Undefined,
+  Generic,
+  Blas,
+  Blis,
+  Static_Size,
+
+  END,
+
+};
+
+template <typename T>
+void matrixProduct(Matrix<T>& AB, const Matrix<T>& A,
+                   const Matrix<T>& B)
+{
+  matrixProduct<GlobalPriority>(
+      PriorityConfiguration<GlobalPriority, GlobalPriority::END>(),
+      AB, A, B);
+}
+#+END_SRC
+
+* Another way, constexpr if
+
+There is another solution, but still not "directly" available because
+it would need *c++17* [[http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0128r1.html][constexpr if]]. However it can be *partially*
+implemented using *c++14*. See an interesting blog post from [[http://baptiste-wicht.com/posts/2015/07/simulate-static_if-with-c11c14.html][Baptiste
+Wicht]] and the [[https://github.com/wichtounet/cpp_utils/blob/master/static_if.hpp][associated implementation]]. Compared to a "true"
+*constexpr_if* this implementation does not allow to return different
+types.  Anyway here is the code:
+
+
+#+ATTR_WP: :syntaxhl light=true
+#+NAME: Static_If
+#+BEGIN_SRC c++
+template <typename T>
+void matrixProduct_undefined(Matrix<T>& AB, const Matrix<T>& A,
+                             const Matrix<T>& B)
+{
+  static_assert(!std::is_same<T, T>::value, /* differed false */
+                "Missing specialization");
+}
+
+template <typename T>
+constexpr bool matrixProduct_generic_v = std::is_arithmetic<T>::value;
+
+template <typename T>
+typename std::enable_if<matrixProduct_generic_v<T>>::type
+    matrixProduct_generic(Matrix<T>& AB, const Matrix<T>& A,
+                          const Matrix<T>& B)
+{
+  std::cout << "\nUse a generic (in-house) implementation";
+}
+
+template <typename T>
+constexpr bool matrixProduct_blas_v =
+    std::is_same<T, float>::value || std::is_same<T, double>::value;
+
+template <typename T>
+typename std::enable_if<matrixProduct_blas_v<T>>::type
+    matrixProduct_blas(Matrix<T>& AB, const Matrix<T>& A,
+                       const Matrix<T>& B)
+{
+  std::cout << "\nUse a BLAS call";
+}
+
+template <typename T>
+void matrixProduct(Matrix<T>& AB, const Matrix<T>& A, const Matrix<T>& B)
+{
+    static_if<matrixProduct_blas_v<T>>([&](auto id)
+                                       {
+                                           matrixProduct_blas(id(AB), id(A), id(B));
+                                       })
+        .else_([&](auto id)
+               {
+                   static_if<matrixProduct_generic_v<T>>(
+                       [&](auto id)
+                       {
+                           matrixProduct_generic(id(AB), id(A), id(B));
+                       })
+                       .else_([&](auto id)
+                              {
+                                  matrixProduct_undefined(id(AB), id(A), id(B));
+                              });
+               });
+}
+#+END_SRC 
+
+The code to define a *static_if* is there:
+
+#+ATTR_WP: :syntaxhl light=true
+#+NAME: Static_If_Def
+#+BEGIN_SRC c++
+// Code from:
+// https://github.com/wichtounet/cpp_utils/blob/master/static_if.hpp
+//
+// See:
+// http://baptiste-wicht.com/posts/2015/07/simulate-static_if-with-c11c14.html
+// http://lists.boost.org/Archives/boost/2014/08/216607.php
+//
+namespace static_if_detail
+{
+  struct identity
+  {
+    template <typename T>
+    T operator()(T&& x) const
+    {
+      return std::forward<T>(x);
+    }
+  };
+
+  template <bool Cond>
+  struct statement
+  {
+    template <typename F>
+    void then(const F& f)
+    {
+      f(identity());
+    }
+
+    template <typename F>
+    void else_(const F&)
+    {
+    }
+  };
+
+  template <>
+  struct statement<false>
+  {
+    template <typename F>
+    void then(const F&)
+    {
+    }
+
+    template <typename F>
+    void else_(const F& f)
+    {
+      f(identity());
+    }
+  };
+}
+
+template <bool Cond, typename F>
+static_if_detail::statement<Cond> static_if(F const& f)
+{
+  static_if_detail::statement<Cond> if_;
+  if_.then(f);
+  return if_;
+}
+#+END_SRC
+
+
+* Final word
+For the moment I use the *priority* like solution.
+
+You can find the code [[https://github.com/vincent-picaud/DropBoxRepository/tree/master/Blog/TagDispatch][on github]].
+
+# :exports none
+
+# ** Makefile
+
+#+ATTR_WP: :syntaxhl light=true
+#+BEGIN_SRC makefile :tangle yes :tangle ~/Temp/TagDispaching/Makefile :mkdirp yes :tangle-mode (identity #o755) :noweb yes :exports none  
+CXX	:= g++
+
+all:  sfinae_fix tag_usual priority_raw priority static_if sfinae
+
+sfinae: sfinae.cpp
+	$(CXX) -std=c++11 sfinae.cpp -o sfinae
+
+sfinae_fix: sfinae_fix.cpp
+	$(CXX) -std=c++11 sfinae_fix.cpp -o sfinae_fix
+
+tag_usual: tag_usual.cpp
+	$(CXX) -std=c++11 tag_usual.cpp -o tag_usual
+
+priority_raw: priority_raw.cpp
+	$(CXX) -std=c++11 priority_raw.cpp -o priority_raw
+
+priority: priority.cpp
+	$(CXX) -std=c++14 priority.cpp -o priority
+
+static_if: static_if.cpp
+	$(CXX) -std=c++14 static_if.cpp -o static_if
+#+END_SRC
+
+# ** SFINAE approach
+
+#+ATTR_WP: :syntaxhl light=true
+#+BEGIN_SRC c++ :tangle yes :tangle ~/Temp/TagDispaching/sfinae.cpp :mkdirp yes :tangle-mode (identity #o755) :noweb yes :exports none  
+#include <type_traits>
+#include <iostream>
+
+<<MatrixDef>>
+
+<<SFINAE>>
+
+// Does not compile!
+<<code_main>>
+#+END_SRC
+
+# ** SFINAE approach, ugly fix 
+
+#+ATTR_WP: :syntaxhl light=true
+#+BEGIN_SRC c++ :tangle yes :tangle ~/Temp/TagDispaching/sfinae_fix.cpp :mkdirp yes :tangle-mode (identity #o755) :noweb yes :exports none  
+#include <type_traits>
+#include <iostream>
+
+<<MatrixDef>>
+
+<<SFINAE_fix>>
+
+<<code_main_ok>>
+#+END_SRC
+
+
+# ** Tag usual approach
+
+#+ATTR_WP: :syntaxhl light=true
+#+BEGIN_SRC c++ :tangle yes :tangle ~/Temp/TagDispaching/tag_usual.cpp :mkdirp yes :tangle-mode (identity #o755) :noweb yes :exports none  
+#include <type_traits>
+#include <iostream>
+
+<<MatrixDef>>
+
+<<Attempt_usual>>
+
+<<code_main_ok>>
+#+END_SRC
+
+# ** Priority (raw)
+
+#+ATTR_WP: :syntaxhl light=true
+#+BEGIN_SRC c++ :tangle yes :tangle ~/Temp/TagDispaching/priority_raw.cpp :mkdirp yes :tangle-mode (identity #o755) :noweb yes :exports none  
+#include <type_traits>
+#include <iostream>
+
+<<MatrixDef>>
+
+<<Priority_Class>>
+
+<<Priority_Raw>>
+
+<<code_main_ok>>
+#+END_SRC
+
+# ** Priority 
+
+#+ATTR_WP: :syntaxhl light=true
+#+BEGIN_SRC c++ :tangle yes :tangle ~/Temp/TagDispaching/priority.cpp :mkdirp yes :tangle-mode (identity #o755) :noweb yes :exports none  
+#include <type_traits>
+#include <iostream>
+
+<<MatrixDef>>
+
+<<Priority_Class>>
+
+<<Priority>>
+
+<<code_main_ok>>
+#+END_SRC
+
+# ** Static if
+
+#+ATTR_WP: :syntaxhl light=true
+#+BEGIN_SRC c++ :tangle yes :tangle ~/Temp/TagDispaching/static_if.cpp :mkdirp yes :tangle-mode (identity #o755) :noweb yes :exports none  
+#include <type_traits>
+#include <iostream>
+
+<<MatrixDef>>
+
+<<Static_If_Def>>
+
+<<Static_If>>
+
+<<code_main_ok>>
+#+END_SRC
