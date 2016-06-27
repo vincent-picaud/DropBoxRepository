@@ -1,5 +1,5 @@
 #+DATE: [2016-06-27 Mon 10:32]
-#+OPTIONS: toc:nil num:nil todo:nil pri:nil tags:nil ^:nil
+#+OPTIONS: toc:nil num:nil todo:nil pri:nil tags:nil ^:nil tex:t  
 #+CATEGORY: C++,Julia,Computations
 #+TAGS:
 #+DESCRIPTION:
@@ -20,7 +20,30 @@ std::cout << "\nToto";
 : 12
 
 
+#+NAME: example-table
+          | 1 | 4 |
+          | 2 | 4 |
+          | 3 | 6 |
+          | 4 | 8 |
+          | 7 | 0 |
 
+#+BEGIN_SRC mathematica :var x=example-table :exports both :results latex
+D[y*y^10+1,y] // TeXForm
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_LaTeX
+11 y^{10}
+#+END_LaTeX
+
+#+BEGIN_SRC latex :exports results 
+\LaTeX
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_LaTeX
+\LaTeX
+#+END_LaTeX
 
 
 #+tblname: data-table

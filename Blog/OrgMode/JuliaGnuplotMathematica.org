@@ -1,0 +1,190 @@
+#+OPTIONS: toc:nil num:nil todo:nil pri:nil tags:nil 
+
+#+OPTIONS: ^:nil 
+#+OPTIONS: tex:t
+
+#+CATEGORY: C++,Julia,Computations
+#+TAGS:
+#+DESCRIPTION:
+#+TITLE: OrgMode and others
+
+#+LATEX_HEADER: \usepackage{amsmath}
+
+* Configuration
+
+#+BEGIN_SRC lisp :exports code
+(require 'org)
+
+					; do not ask for confirmation
+					;
+(setq org-confirm-babel-evaluate nil) 
+
+					; allows to display images
+					;
+(add-hook 'org-babel-after-execute-hook 'org-display-inline-images) 
+(add-hook 'org-mode-hook 'org-display-inline-images)
+
+					; The place where to store ob-mathematica.el,
+					; ob-julia.el etc...
+(add-to-list 'load-path "/IS006139/home/pix/.emacs.d/Extra")
+
+					; Where to find executables
+(setq  inferior-julia-program-name "/usr/bin/julia")
+(setq  inferior-gnuplot-program-name "/usr/bin/gnuplot")
+
+					; List of allowed languages
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '(
+					; Caveat: the ob-julia.el package must be installed in Extra/ dir
+					; https://github.com/gjkerns/ob-julia
+   (julia . t)
+   (sh . t)
+					; Caveat: the gnuplot.el package must be installed
+					; (can be find in: package-list-packages)
+   (gnuplot . t)
+   
+					; Caveat: the ob-mathematica.el must be installed in Extra/ dir
+					; https://github.com/tririver/wy-els/blob/master/ob-mathematica.el
+   (mathematica . t)
+   (latex . t)
+   (C . t)
+   ))
+#+END_SRC 
+
+* LaTeX Code
+
+#+begin_src latex :file latex-logo.png :exports both 
+  \LaTeX
+#+end_src
+
+#+RESULTS:
+#+BEGIN_LaTeX
+[[file:latex-logo.png]]
+#+END_LaTeX
+
+
+* C++ code
+
+#+BEGIN_SRC C++ :includes <iostream> :exports both
+std::cout << "\nToto";
+#+END_SRC
+
+#+RESULTS:
+: Toto
+
+* Julia code
+
+Code julia
+#+BEGIN_SRC julia :exports both
+5+7
+#+END_SRC
+
+Result
+#+RESULTS:
+: 12
+
+* Mathematica & LaTex
+
+** Latex
+
+Do not forget to set the *tex:t* option
+#+BEGIN_EXAMPLE
+#+OPTIONS: tex:t  
+#+END_EXAMPLE
+
+Mathematica code
+
+#+BEGIN_SRC mathematica :exports both :results latex
+PDF[NormalDistribution[0,1]][x] // TeXForm
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_LaTeX
+\frac{e^{-\frac{x^2}{2}}}{\sqrt{2 \pi }}
+#+END_LaTeX
+
+\[
+\int_0^\infty e^{-x^2} dx = \frac{\sqrt{\pi}}{2}
+\]
+
+#+BEGIN_LaTeX
+\frac{x}{y}
+#+END_LaTeX
+
+
+** Mathematica code
+
+#+NAME: example-table
+          | 1 | 4 |
+          | 2 | 4 |
+
+
+#+BEGIN_SRC mathematica :var x=example-table :exports both 
+2*Inverse[x]
+#+END_SRC
+
+#+RESULTS:
+| -2 |    2 |
+|  1 | -1/2 |
+
+
+** Mathematica plot
+
+
+* Gnuplot
+
+** Gnuplot script
+
+#+BEGIN_SRC gnuplot :exports both :file file.png 
+reset
+
+set title "Putting it All Together"
+
+set xlabel "X"
+set xrange [-8:8]
+set xtics -8,2,8
+
+
+set ylabel "Y"
+set yrange [-20:70]
+set ytics -20,10,70
+
+f(x) = x**2
+g(x) = x**3
+h(x) = 10*sqrt(abs(x))
+
+plot f(x) w lp lw 1, g(x) w p lw 2, h(x) w l lw 3
+#+END_SRC
+
+#+RESULTS:
+[[file:file.png]]
+
+** Gnuplot script with orgmode data table
+
+#+tblname: data-table
+| x | y1 | y2 |
+|---+----+----|
+| 0 |  3 |  6 |
+| 1 |  4 |  7 |
+| 2 |  5 |  8 |
+
+Attention, you must write *with lines* and not simply *wl*. The same
+holds for *title*...
+
+#+BEGIN_SRC gnuplot :var data=data-table :file output.png :exports both
+
+reset
+
+set xrange [0:5]
+set yrange [0:10]
+plot data u 2:3 with lines title "toto", \
+data u 1:3 with lines title "titi"
+
+#+END_SRC
+
+#+RESULTS:
+[[file:output.png]]
+
+
+
