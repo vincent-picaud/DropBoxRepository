@@ -1,0 +1,46 @@
+#+DATE: [2016-06-27 Mon 10:32]
+#+OPTIONS: toc:nil num:nil todo:nil pri:nil tags:nil ^:nil
+#+CATEGORY: C++,Julia,Computations
+#+TAGS:
+#+DESCRIPTION:
+#+TITLE: Min/Max Ruminations
+
+#+BEGIN_SRC C++ :includes <iostream>
+std::cout << "\nToto";
+#+END_SRC
+
+#+RESULTS:
+: Toto
+
+#+BEGIN_SRC julia 
+5+7
+#+END_SRC
+
+#+RESULTS:
+: 12
+
+
+
+
+
+#+tblname: data-table
+| x | y1 | y2 |
+|---+----+----|
+| 0 |  3 |  6 |
+| 1 |  4 |  7 |
+| 2 |  5 |  8 |
+
+
+
+#+begin_src gnuplot :exports code :file file.png
+reset
+
+set title "Putting it All Together"
+plot x,y
+#+end_src
+
+#+RESULTS:
+[[file:file.png]]
+
+
+
