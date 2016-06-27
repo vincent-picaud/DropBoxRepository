@@ -73,6 +73,17 @@ std::cout << "\nToto";
 #+RESULTS:
 : Toto
 
+#+begin_src C++ :includes (list "<iostream>" "<vector>") :flags -std=c++11
+std::vector<int> v{1,2,3};
+for(auto& val : v) std::cout << val << "\n";
+#+end_src
+
+#+RESULTS:
+| 1 |
+| 2 |
+| 3 |
+
+
 * Julia code
 
 Code julia
