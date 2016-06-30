@@ -3,9 +3,75 @@
 #+CATEGORY: C++,Julia,Computations
 #+TAGS:
 #+DESCRIPTION:
-#+TITLE: Min/Max Ruminations
+#+TITLE: A remark about min()/max() functions
 
-#+BEGIN_SRC C++ :includes <iostream>
+Computing the *min* (or *max*) of two values looks like a trivial
+task.
+
+For *C++* the default Standard Template Library (STL) implementation
+is
+
+#+BEGIN_SRC C++ :exports code
+inline const _Tp& min(const _Tp& __a, const _Tp& __b)
+{
+	return __b < __a ? __b : __a;
+}
+#+END_SRC
+
+However for numerical computations this definition does not mix well
+with the [[https://en.wikipedia.org/wiki/IEEE_floating_point][IEEE 754]] standard when dealing with potential *NaN* value.
+
+For instance, *min()* is _not commutative_ and is _not equivatent_ to
+*cmath::fmin()*, we have:
+
+#+BEGIN_SRC C++ :main no :flags -std=c++11 :results org :exports both
+#include <iostream>
+#include <cmath>
+#include <limits>
+#include <cassert>
+
+using namespace std;
+
+int main()
+{
+    const auto x_nan = numeric_limits<double>::quiet_NaN();
+    const auto x_1 = 1.;
+
+	cout << boolalpha;
+
+    cout << "\n\ncommutativity?";
+    cout << "\n min: " << (min(x_1, x_nan) == min(x_nan, x_1));
+    cout << "\nfmin: " << (fmin(x_1, x_nan) == fmin(x_nan, x_1));
+}
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_SRC org
+commutativity?
+ min: false
+fmin: true
+#+END_SRC
+
+The [[https://en.wikipedia.org/wiki/NaN][IEEE 754]] says:
+#+BEGIN_QUOTE
+In section 6.2 of the revised IEEE 754-2008 standard there are two
+anomalous functions (the maxnum and minnum functions that return the
+maximum of two operands that are expected to be numbers) that favor
+numbers — if just one of the operands is a NaN then the value of the
+other operand is returned.
+#+END_QUOTE
+
+On the opposite you can read about C++ rules [[http://www.drdobbs.com/cpp/its-hard-to-compare-floating-point-numbe/240149806][here]]:
+#+BEGIN_QUOTE
+NaN values have the curious property that they compare as "unordered"
+with all values, even with themselves. In other words, if x is a NaN,
+and y is any floating-point value, NaN or not, then x<y, x>y, x<=y,
+x>=y, and x==y are all false, and x!=y is true.
+#+END_QUOTE
+
+
+Min() or max()
+#+BEGIN_SRC C++ :includes <iostream> :flags -std=c++11
 std::cout << "\nToto";
 #+END_SRC
 
