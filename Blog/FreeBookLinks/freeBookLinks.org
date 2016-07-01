@@ -1,0 +1,32 @@
+#+BLOG: wordpress
+#+POSTID: 295
+#+DATE: [2016-07-01 Fri 07:40]
+#+OPTIONS: toc:nil num:nil todo:nil pri:nil tags:nil ^:nil
+#+CATEGORY: Some links, Computations
+#+TAGS:
+#+DESCRIPTION:
+#+TITLE: Some free online books
+
+A place to store some links on free online resources...
+
+* Numerical linear algebra
+
+** [[http://www-users.cs.umn.edu/~saad/books.html][Yousef Saad - books]]
+
+* Optimization
+
+** [[http://stanford.edu/~boyd/books.html][Stephen P. Boyd – Books]]
+
+
+* "Machine learning"
+
+** [[http://www.cs.huji.ac.il/~shais/UnderstandingMachineLearning/copy.html][Understanding Machine Learning: From Theory to Algorithms]]
+
+Authors homepage: [[http://www.cs.huji.ac.il/~shais/publications.html][Shai Shalev-Shwartz]], [[https://cs.uwaterloo.ca/~shai/publications.html][Shai Ben-David]]
+
+
+** [[http://www.gaussianprocess.org/gpml/][Gaussian Processes for Machine Learning]]
+
+Authors: Carl Edward Rasmussen and Christopher K. I. Williams
+
+
