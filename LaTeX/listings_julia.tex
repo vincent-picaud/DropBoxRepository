@@ -1,0 +1,54 @@
+% From https://github.com/ATElve/Julia-listings-LaTeX/
+
+\usepackage{listings}
+\usepackage[usenames,dvipsnames]{color} % more flexible names for syntax highlighting colors
+\usepackage{inconsolata}
+
+\definecolor{Gray}{gray}{0.7}
+\definecolor{Olivegreen}{rgb}{0,0.6,0}
+\definecolor{Blue}{rgb}{0,0,1}
+\definecolor{Maroon}{rgb}{0.68,0,0.0}
+\definecolor{Purple}{rgb}{0.55,0.14,1}
+
+\lstset{
+basicstyle=\footnotesize\ttfamily,breaklines=true, 
+columns=fullflexible,
+%numbers=left, 
+%numberstyle=\small\ttfamily\color{Gray},
+%stepnumber=1,              
+%numbersep=10pt, 
+%numberfirstline=true, 
+%numberblanklines=true, 
+tabsize=4,
+lineskip=-1.5pt,
+extendedchars=true,
+breaklines=true,        
+keywordstyle=\color{Blue}\bfseries,
+identifierstyle=, % using emph or index keywords
+commentstyle=\footnotesize\ttfamily\color{Olivegreen},
+stringstyle=\color{Maroon},
+showstringspaces=false,
+showtabs=false,
+upquote=false,
+emph={%  
+    legendre, differentiate, helmholtz, idgasp,libgas,out,testing%
+    },emphstyle={\color{Purple}}%
+}
+
+\lstdefinelanguage{Julia}
+{
+  keywordsprefix=\@,
+  morekeywords={
+    exit,whos,edit,load,is,isa,isequal,typeof,tuple,ntuple,uid,hash,finalizer,convert,promote,
+    subtype,typemin,typemax,realmin,realmax,sizeof,eps,promote_type,method_exists,applicable,
+    invoke,dlopen,dlsym,system,error,throw,assert,new,Inf,Nan,pi,im,begin,while,for,in,return,include,eval,require,
+    break,continue,macro,quote,let,if,elseif,else,try,catch,end,bitstype,ccall,do,using,module,sum,zeros,
+    import,export,importall,baremodule,immutable,local,global,const,Bool,Int,Int8,Int16,Int32,
+    Int64,Uint,Uint8,Uint16,Uint32,Uint64,Float32,Float64,Complex64,Complex128,Any,Nothing,None,
+    function,type,typealias,abstract
+  },
+  sensitive=true,
+  morecomment=[l]{\#},
+%  morestring=[b]',
+  morestring=[b]" 
+}
