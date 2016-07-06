@@ -7,26 +7,52 @@
 #+DESCRIPTION:
 #+TITLE: Some free online books
 
-A place to store some links on free online resources...
+A place to store some of my links on free online resources... 
+Maybe can be useful for someone else...
+To be updated randomly...
 
-* Numerical linear algebra
+* Free books
 
-** [[http://www-users.cs.umn.edu/~saad/books.html][Yousef Saad - books]]
+** Signal processing
 
-* Optimization
+*** [[http://www.ece.rutgers.edu/~orfanidi/intro2sp/][Introduction to Signal Processing, S.J. Orfanidis]]
 
-** [[http://stanford.edu/~boyd/books.html][Stephen P. Boyd – Books]]
+** Numerical linear algebra
 
+*** [[http://www-users.cs.umn.edu/~saad/books.html][Yousef Saad - books]]
 
-* "Machine learning"
+** Optimization
 
-** [[http://www.cs.huji.ac.il/~shais/UnderstandingMachineLearning/copy.html][Understanding Machine Learning: From Theory to Algorithms]]
+*** [[http://stanford.edu/~boyd/books.html][Stephen P. Boyd – Books]]
+
+*** [[http://www.mit.edu/~dimitrib/lagr_mult.html][Constrained Optimization and Lagrange Multiplier Methods, Dimitri P. Bertsekas]]
+
+** "Machine learning"/Information theory/Statistics
+
+*** [[http://www.cs.huji.ac.il/~shais/UnderstandingMachineLearning/copy.html][Understanding Machine Learning: From Theory to Algorithms]]
 
 Authors homepage: [[http://www.cs.huji.ac.il/~shais/publications.html][Shai Shalev-Shwartz]], [[https://cs.uwaterloo.ca/~shai/publications.html][Shai Ben-David]]
 
-
-** [[http://www.gaussianprocess.org/gpml/][Gaussian Processes for Machine Learning]]
+*** [[http://www.gaussianprocess.org/gpml/][Gaussian Processes for Machine Learning]]
 
 Authors: Carl Edward Rasmussen and Christopher K. I. Williams
 
+*** [[http://www.inference.phy.cam.ac.uk/itprnn/book.html][Information Theory, Inference, and Learning Algorithms, David MacKay]]
 
+R.I.P.
+
+** Computing
+
+*** [[http://greenteapress.com/wp/][Green Tea Press, Free books by Allen Downey]]
+
+#================================================================
+
+* PhD / Reports
+
+** "Machine learning"/Information theory/Statistics
+
+*** [[http://www.cse.buffalo.edu/faculty/mbeal/thesis/][Variational Algorithms for Approximate Bayesian Inference, Matthew J. Beal]]
+
+*** [[http://arxiv.org/abs/1408.0952][A Primer on Reproducing Kernel Hilbert Spaces, Jonathan H. Manton, Pierre-Olivier Amblard]]
+
+*** [[http://www.montefiore.ulg.ac.be/~glouppe/pdf/phd-thesis.pdf][Understanding Random Forests, G. Louppe]]
