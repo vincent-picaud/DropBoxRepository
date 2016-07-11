@@ -25,6 +25,7 @@
 /Blog/NLS/nls.pdf
 /Blog/NLS/nls.tex
 /Blog/FreeBookLinks/freeBookLinks.html
+<<<<<<< HEAD
 /Blog/Kunisch/kunisch.aux
 /Blog/Kunisch/kunisch.fdb_latexmk
 /Blog/Kunisch/kunisch.fls
@@ -32,3 +33,6 @@
 /Blog/Kunisch/kunisch.log
 /Blog/Kunisch/kunisch.pdf
 /Blog/Kunisch/test.png
+=======
+/Archive/Draft/FreeBookLinks/freeBookLinks.html
+>>>>>>> 6bce55c2b7fa4469917be9f20120a1d1bf3f4af3
