@@ -52,6 +52,7 @@
    ))
 #+END_SRC 
 
+
 * LaTeX Code
 
 #+begin_src latex :file latex-logo.png :exports both 
@@ -95,16 +96,10 @@ Result
 #+RESULTS:
 : 12
 
-* Mathematica & LaTex
 
-** Latex
+* Mathematica code
 
-Do not forget to set the *tex:t* option
-#+BEGIN_EXAMPLE
-#+OPTIONS: tex:t  
-#+END_EXAMPLE
-
-Mathematica code
+** Example 1
 
 #+BEGIN_SRC mathematica :exports both :results latex
 PDF[NormalDistribution[0,1]][x] // TeXForm
@@ -115,16 +110,8 @@ PDF[NormalDistribution[0,1]][x] // TeXForm
 \frac{e^{-\frac{x^2}{2}}}{\sqrt{2 \pi }}
 #+END_LaTeX
 
-\[
-\int_0^\infty e^{-x^2} dx = \frac{\sqrt{\pi}}{2}
-\]
 
-#+BEGIN_LaTeX
-\frac{x}{y}
-#+END_LaTeX
-
-
-** Mathematica code
+** Example 2
 
 #+NAME: example-table
           | 1 | 4 |
@@ -138,9 +125,6 @@ PDF[NormalDistribution[0,1]][x] // TeXForm
 #+RESULTS:
 | -2 |    2 |
 |  1 | -1/2 |
-
-
-** Mathematica plot
 
 
 * Gnuplot
