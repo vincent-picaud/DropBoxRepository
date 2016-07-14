@@ -224,9 +224,9 @@ DD.Inverse[R].Qt // TeXForm
 \right)
 \end{equation}
 
-The first row is the smoothing filter $P(0)$, the second one the
-smoothed first order derivative $P'(0)$ and the last one the smoothed
-second order derivative $P''(0)$
+The first row is the smoothing $P(0)$ filter, the second one the
+smoothed first order derivative $P'(0)$ filter and the last one the smoothed
+second order derivative $P''(0)$ filter.
 
 
 * A Julia implementation
@@ -309,16 +309,20 @@ function apply_filter{T}(filter::StridedVector{T},signal::StridedVector{T})
 
     halfWindow = round(Int,(length(filter)-1)/2)
     
-    padded_signal = [signal[1]*ones(halfWindow); signal; signal[end]*ones(halfWindow)]
+    padded_signal = 
+	    [signal[1]*ones(halfWindow);
+         signal;
+         signal[end]*ones(halfWindow)]
+
     filter_cross_signal = conv(filter[end:-1:1], padded_signal)
 
     return filter_cross_signal[2*halfWindow+1:end-2*halfWindow]
 end
 #+end_src
 
-Finally I have included a small usage example. To see well the filter
-effect, I have *over smoothed* with a large window width $2.n+1$,
-$n=20$
+Finally I have included a small usage example. To see well the effect
+of Savitzky-Golay filters, I have *over smoothed* with a *large window
+width* $2.n+1$, $n=20$
 
 #+name: julia_Example
 #+begin_src julia
@@ -362,7 +366,7 @@ Here is the resulting plots:
 
 
 
-#+begin_src julia :tangle yes :tangle tangled_sg.jl :noweb yes :exports none
+#+begin_src julia :tangle yes :tangle sg.jl :noweb yes :exports none
 # From 
 
 <<julia_V>>
@@ -380,3 +384,6 @@ Here is the resulting plots:
 <<julia_Example>>
 #+end_src
 
+# smoothed.png http://pixorblog.files.wordpress.com/2016/07/smoothed1.png
+# smoothed_d1.png http://pixorblog.files.wordpress.com/2016/07/smoothed_d11.png
+# smoothed_d2.png http://pixorblog.files.wordpress.com/2016/07/smoothed_d21.png

@@ -1,9 +1,10 @@
+# From 
 
 function vandermonde(halfWindow::Int, polyDeg::Int,T::Type=Float64)
-
+    
     @assert halfWindow>=0
     @assert polyDeg>=0
-
+    
     x=T[i for i in -halfWindow:halfWindow]
 
     n = polyDeg+1
@@ -22,7 +23,9 @@ function vandermonde(halfWindow::Int, polyDeg::Int,T::Type=Float64)
 
     return V
 end
-    
+
+#________________________________________________________________
+
 function SG(halfWindow::Int, polyDeg::Int,T::Type=Float64)
 
     @assert 2*halfWindow>polyDeg
@@ -35,8 +38,12 @@ function SG(halfWindow::Int, polyDeg::Int,T::Type=Float64)
         SG[i,:]*=factorial(i-1)
     end
     
+# CAVEAT: returns the transposed matrix
+
     return SG'
 end
+
+#________________________________________________________________
 
 function apply_filter{T}(filter::StridedVector{T},signal::StridedVector{T})
 
@@ -44,7 +51,11 @@ function apply_filter{T}(filter::StridedVector{T},signal::StridedVector{T})
 
     halfWindow = round(Int,(length(filter)-1)/2)
     
-    padded_signal = [signal[1]*ones(halfWindow); signal; signal[end]*ones(halfWindow)]
+    padded_signal = 
+	    [signal[1]*ones(halfWindow);
+         signal;
+         signal[end]*ones(halfWindow)]
+
     filter_cross_signal = conv(filter[end:-1:1], padded_signal)
 
     return filter_cross_signal[2*halfWindow+1:end-2*halfWindow]
@@ -56,7 +67,7 @@ using Winston
 
 s=readdlm("signal.txt")[:,1]
 
-sg=SG(20,3)
+sg=SG(20,3) # halt-window, polynomal degree
 
 #________________
 
