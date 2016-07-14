@@ -52,6 +52,33 @@ end
 
 #________________________________________________________________
 
+using Winston
+
 s=readdlm("signal.txt")[:,1]
+
 sg=SG(20,3)
-smoothed_s=apply_filter(sg[:,1],s)
+
+#________________
+
+smoothed=apply_filter(sg[:,1],s)
+
+plot(s,"r")
+oplot(smoothed)
+title("Smoothed")
+savefig("smoothed.png")
+
+#________________
+
+smoothed_d1=apply_filter(sg[:,2],s)
+
+plot(smoothed_d1)
+title("Smoothed derivative")
+savefig("smoothed_d1.png")
+
+#________________
+
+smoothed_d2=apply_filter(sg[:,3],s)
+
+plot(smoothed_d2)
+title("Smoothed 2-derivative")
+savefig("smoothed_d2.png")

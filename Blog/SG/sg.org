@@ -9,6 +9,8 @@
 
 #+TITLE: Savitzky-Golay filters & Julia
 
+# Contains code to tangle
+# --> To generate: C-c C-v t
 
 I always have found that presented computations of the [[https://en.wikipedia.org/wiki/Savitzky%25E2%2580%2593Golay_filter][Savitzky-Golay]]
 filter coefficients were over tricky. I present here a *simple
@@ -85,7 +87,7 @@ $\mathbf{p}=\mathbf{V}.\mathbf{c}$. Lets rewrite this in matrix form:
 \end{equation}
 
 Now the "*big trick*" is to write the [[https://en.wikipedia.org/wiki/Taylor_series][Taylor series]] and to remember
-that this formula is *exact* for polynomial function:
+that this formula is *exact* for polynomial functions:
 
 \begin{equation}
 \forall i,\ P(x_i) = \sum\limits_{j=0}^d \frac{x_i^j}{j!} P^{(j)}(x_0)
@@ -222,6 +224,159 @@ DD.Inverse[R].Qt // TeXForm
 \right)
 \end{equation}
 
+The first row is the smoothing filter $P(0)$, the second one the
+smoothed first order derivative $P'(0)$ and the last one the smoothed
+second order derivative $P''(0)$
 
 
 * A Julia implementation
+
+Here I present a direct implementation in julia.
+
+We first initialize a Vandermonde matrix:
+
+#+name: julia_V
+#+begin_src julia
+function vandermonde(halfWindow::Int, polyDeg::Int,T::Type=Float64)
+    
+    @assert halfWindow>=0
+    @assert polyDeg>=0
+    
+    x=T[i for i in -halfWindow:halfWindow]
+
+    n = polyDeg+1
+    m = length(x)
+    
+    V = Array{T}(m, n)
+    
+    for i = 1:m
+        V[i,1] = T(1)
+    end
+    for j = 2:n
+        for i = 1:m
+            V[i,j] = x[i] * V[i,j-1]
+        end
+    end
+
+    return V
+end
+#+end_src
+
+We then compute the filter coefficients with the presented formula.
+
+*Attention* we return the transposed matrix because in Julia it is
+more convenient to use SG[:,1] which is a julia vector. SG[1,:] would
+be a 1xn julia matrix.
+
+#+name: julia_SG
+#+begin_src julia
+function SG(halfWindow::Int, polyDeg::Int,T::Type=Float64)
+
+    @assert 2*halfWindow>polyDeg
+    
+    V=vandermonde(halfWindow,polyDeg,T)
+    Q,R=qr(V)
+    SG=R\Q'
+
+    for i in 1:size(SG,1)
+        SG[i,:]*=factorial(i-1)
+    end
+    
+# CAVEAT: returns the transposed matrix
+
+    return SG'
+end
+#+end_src
+
+The final step to use the filter is to provide function to do the [[https://en.wikipedia.org/wiki/Cross-correlation][cross-correlation]].
+
+I do not want to talk too much about this subroutine because in a future
+post I will show how to efficiently compute such kind of convolution. Here
+we use a FFT, but with a short filter it is much more efficient (around
+*10 times faster*) to use a direct computation. I will show how to implement
+\begin{equation}
+\gamma[k]=\sum\limits_i\alpha[i]\beta[k+\lambda i],\ with\ \lambda\in\mathbb{Z}^*
+\end{equation}
+which can be used to compute [[https://en.wikipedia.org/wiki/List_of_wavelet-related_transforms][discrete and stationary wavelet transform]] for instance.
+
+One last thing, here we use *constant padding* to manage the boundaries.
+
+#+name: julia_Conv
+#+begin_src julia
+function apply_filter{T}(filter::StridedVector{T},signal::StridedVector{T})
+
+    @assert isodd(length(filter))
+
+    halfWindow = round(Int,(length(filter)-1)/2)
+    
+    padded_signal = [signal[1]*ones(halfWindow); signal; signal[end]*ones(halfWindow)]
+    filter_cross_signal = conv(filter[end:-1:1], padded_signal)
+
+    return filter_cross_signal[2*halfWindow+1:end-2*halfWindow]
+end
+#+end_src
+
+Finally I have included a small usage example. To see well the filter
+effect, I have *over smoothed* with a large window width $2.n+1$,
+$n=20$
+
+#+name: julia_Example
+#+begin_src julia
+using Winston
+
+s=readdlm("signal.txt")[:,1]
+
+sg=SG(20,3) # halt-window, polynomal degree
+
+#________________
+
+smoothed=apply_filter(sg[:,1],s)
+
+plot(s,"r")
+oplot(smoothed)
+title("Smoothed")
+savefig("smoothed.png")
+
+#________________
+
+smoothed_d1=apply_filter(sg[:,2],s)
+
+plot(smoothed_d1)
+title("Smoothed derivative")
+savefig("smoothed_d1.png")
+
+#________________
+
+smoothed_d2=apply_filter(sg[:,3],s)
+
+plot(smoothed_d2)
+title("Smoothed 2-derivative")
+savefig("smoothed_d2.png")
+#+end_src
+
+Here is the resulting plots:
+
+[[file:smoothed.png]]
+[[file:smoothed_d1.png]]
+[[file:smoothed_d2.png]]
+
+
+
+#+begin_src julia :tangle yes :tangle tangled_sg.jl :noweb yes :exports none
+# From 
+
+<<julia_V>>
+
+#________________________________________________________________
+
+<<julia_SG>>
+
+#________________________________________________________________
+
+<<julia_Conv>>
+
+#________________________________________________________________
+
+<<julia_Example>>
+#+end_src
+
