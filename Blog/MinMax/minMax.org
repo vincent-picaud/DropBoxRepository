@@ -471,7 +471,7 @@ both the IEEE 754 and the comparison based versions of the *min()* function.
 
 
 
-In the future I will write a post on [[https://arxiv.org/abs/1411.0583][Automatic Differentiation]]. To be
+In the future I will write a post on [[https://en.wikipedia.org/wiki/Automatic_differentiation][Automatic Differentiation]]. To be
 brief *automatic differentiation* is a tool that allows you to
 *efficiently* compute gradient with nearly no modification of your
 original code. As example my personal implementation takes the form:
@@ -577,3 +577,7 @@ $$
 
 ... but these relations do not follow the IEEE 754 standard!
 
+
+I would like to thank my colleague JP. Both for having noticed that
+min()/max() was "abnormally" slow and Y. Borstein for some emails
+exchanges concerning min()/max() in Julia.
