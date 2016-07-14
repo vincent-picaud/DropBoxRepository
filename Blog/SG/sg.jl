@@ -1,4 +1,5 @@
-# From 
+# Please, keep this ref: 
+# https://pixorblog.wordpress.com/2016/07/13/savitzky-golay-filters-julia/
 
 function vandermonde(halfWindow::Int, polyDeg::Int,T::Type=Float64)
     

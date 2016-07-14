@@ -364,10 +364,13 @@ Here is the resulting plots:
 [[file:smoothed_d1.png]]
 [[file:smoothed_d2.png]]
 
+* Final word
 
+To reproduce these figures you can find the complete code on [[https://github.com/vincent-picaud/DropBoxRepository/tree/master/Blog/SG][github]].
 
 #+begin_src julia :tangle yes :tangle sg.jl :noweb yes :exports none
-# From 
+# Please, keep this ref: 
+# https://pixorblog.wordpress.com/2016/07/13/savitzky-golay-filters-julia/
 
 <<julia_V>>
 
