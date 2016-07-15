@@ -12,9 +12,11 @@
 # Contains code to tangle
 # --> To generate: C-c C-v t
 
-I always have found that presented computations of the [[https://en.wikipedia.org/wiki/Savitzky%25E2%2580%2593Golay_filter][Savitzky-Golay]]
-filter coefficients were over tricky. I present here a *simple
-formula* and a possible implementation in [[http://julialang.org/][Julia]].
+I always have found that presentations of the
+[[https://en.wikipedia.org/wiki/Savitzky%25E2%2580%2593Golay_filter][Savitzky-Golay]]
+filters were over tricky. I present here a simple derivation of these
+formula and a possible implementation in
+[[http://julialang.org/][Julia]].
 
 * Derivation of the formula
 
@@ -58,7 +60,7 @@ and a [[https://en.wikipedia.org/wiki/QR_decomposition][QR decomposition]], $\ma
 \mathbf{c}=\mathbf{R}^{-1}.\mathbf{Q}^t.\mathbf{y}
 \end{equation}
 
-now we can express the all the polynomial values $p(x_i)$ in a vector
+now we can express all the polynomial values $p(x_i)$ in a vector
 $\mathbf{p}=\mathbf{V}.\mathbf{c}$. Lets rewrite this in matrix form:
 
 \begin{equation}
@@ -155,7 +157,7 @@ With a good eye we see that $\mathbf{V}=\mathbf{T}.\mathbf{D}$ where $\mathbf{D}
   \right)}\limits_{\mathbf{D}}
  \end{equation}
 
-That's all, know we only have to group pieces:
+That's all, we only have to group pieces:
 \begin{equation}
 \mathbf{V}.\mathbf{c}=\mathbf{P}=\mathbf{T}.\mathbf{p^\delta}=\mathbf{V}.\mathbf{D}^{-1}.\mathbf{p^\delta}
 \end{equation}
@@ -266,7 +268,7 @@ We then compute the filter coefficients with the presented formula.
 
 *Attention* we return the transposed matrix because in Julia it is
 more convenient to use SG[:,1] which is a julia vector. SG[1,:] would
-be a 1xn julia matrix.
+be a *(1,n)* julia matrix.
 
 #+name: julia_SG
 #+begin_src julia
