@@ -24,8 +24,9 @@ to your emacs configuration file
 
 When you use [[https://www.emacswiki.org/emacs/RegularExpression][regular expressions]], the commands like *M-x
 regexp-builder*, *M-x find-grep-dired*, *M-x query-replace-regexp*...
-have a tricky behavior. The default behavior is *read* mode which
-requires "*double escaping*". For instance you must type:
+have a tricky behavior. As best explained [[https://www.masteringemacs.org/article/re-builder-interactive-regexp-builder][here]], the default behavior
+is *read* mode which requires "*double escaping*". For instance you
+must type:
 #+BEGIN_SRC lisp
 \\(foo\\|bar\\)
 #+END_SRC
@@ -73,7 +74,7 @@ You can select a rectangular region with *C-x space*.
 # +CAPTION: Select a rectangular region
 [[./rect.png]]
 
-can be useful for tabular data...
+can be useful for *tabular data*...
 
 * Going faster
 
@@ -113,7 +114,7 @@ to you *emacs* file. You can use it by pressing *f1* and *C-y* to insert
 
 ** Rename a buffer and a file in the same time
 
-Add
+From [[https://sites.google.com/site/steveyegge2/my-dot-emacs-file][this post]], add
 #+BEGIN_SRC lisp
 (defun rename-current-buffer-file ()
   "Renames current buffer and file it is visiting."
@@ -137,14 +138,79 @@ Add
 
 to you *emacs* file. You can use it by pressing *f2*.
 
+** Use greek letters
+
+In *Julia* for instance you can and I find convenient to use *greek
+letters*. This can be easily done with *M-g + letter*.  Found [[http://stackoverflow.com/questions/10192341/how-to-enter-greek-characters-in-emacs][in this
+stackoverflow post]], just add this to your *.emacs* file.
+
+#+BEGIN_SRC lisp
+(global-set-key (kbd "M-g a") "α")
+(global-set-key (kbd "M-g b") "β")
+(global-set-key (kbd "M-g g") "γ")
+(global-set-key (kbd "M-g d") "δ")
+(global-set-key (kbd "M-g e") "ε")
+(global-set-key (kbd "M-g z") "ζ")
+(global-set-key (kbd "M-g h") "η")
+(global-set-key (kbd "M-g q") "θ")
+(global-set-key (kbd "M-g i") "ι")
+(global-set-key (kbd "M-g k") "κ")
+(global-set-key (kbd "M-g l") "λ")
+(global-set-key (kbd "M-g m") "μ")
+(global-set-key (kbd "M-g n") "ν")
+(global-set-key (kbd "M-g x") "ξ")
+(global-set-key (kbd "M-g o") "ο")
+(global-set-key (kbd "M-g p") "π")
+(global-set-key (kbd "M-g r") "ρ")
+(global-set-key (kbd "M-g s") "σ")
+(global-set-key (kbd "M-g t") "τ")
+(global-set-key (kbd "M-g u") "υ")
+(global-set-key (kbd "M-g f") "ϕ")
+(global-set-key (kbd "M-g j") "φ")
+(global-set-key (kbd "M-g c") "χ")
+(global-set-key (kbd "M-g y") "ψ")
+(global-set-key (kbd "M-g w") "ω")
+(global-set-key (kbd "M-g A") "Α")
+(global-set-key (kbd "M-g B") "Β")
+(global-set-key (kbd "M-g G") "Γ")
+(global-set-key (kbd "M-g D") "Δ")
+(global-set-key (kbd "M-g E") "Ε")
+(global-set-key (kbd "M-g Z") "Ζ")
+(global-set-key (kbd "M-g H") "Η")
+(global-set-key (kbd "M-g Q") "Θ")
+(global-set-key (kbd "M-g I") "Ι")
+(global-set-key (kbd "M-g K") "Κ")
+(global-set-key (kbd "M-g L") "Λ")
+(global-set-key (kbd "M-g M") "Μ")
+(global-set-key (kbd "M-g N") "Ν")
+(global-set-key (kbd "M-g X") "Ξ")
+(global-set-key (kbd "M-g O") "Ο")
+(global-set-key (kbd "M-g P") "Π")
+(global-set-key (kbd "M-g R") "Ρ")
+(global-set-key (kbd "M-g S") "Σ")
+(global-set-key (kbd "M-g T") "Τ")
+(global-set-key (kbd "M-g U") "Υ")
+(global-set-key (kbd "M-g F") "Φ")
+(global-set-key (kbd "M-g J") "Φ")
+(global-set-key (kbd "M-g C") "Χ")
+(global-set-key (kbd "M-g Y") "Ψ")
+(global-set-key (kbd "M-g W") "Ω")
+#+END_SRC
+
+
 ** Last but not least
+
+There are plenty of great packages:
 
 - use [[https://github.com/magit/magit][magit]]
 - use [[http://orgmode.org/][orgmode]]
 - use [[https://www.emacswiki.org/emacs/Yasnippet][Yasnippet]]
 - use [[https://github.com/yaruopooner/ac-clang][ac-clang]] or [[https://www.emacswiki.org/emacs/AutoComplete][AutoComplete]]
-- use two or three screens, but not emacs related :-)
 
-Feel free to add your own emacs tricks by doing a pull request [[https://github.com/vincent-picaud/DropBoxRepository/tree/master/Blog/EmacsNotes][here]].
+Useful links:
+
+- https://www.masteringemacs.org/
+- https://www.emacswiki.org/emacs/SiteMap
+- http://ergoemacs.org/
 
 # ./rect.png http://pixorblog.files.wordpress.com/2016/06/rect1.png
