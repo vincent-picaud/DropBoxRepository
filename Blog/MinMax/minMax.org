@@ -462,14 +462,9 @@ We see that:
 
 * A source of bugs?
 
-** Invariant
-
 You have to take care that a simple statement like $$ x\le\min(x,y) $$
 is mathematically true but false in your code. It is even false for
 both the IEEE 754 and the comparison based versions of the *min()* function.
-
-
-
 
 In the future I will write a post on [[https://en.wikipedia.org/wiki/Automatic_differentiation][Automatic Differentiation]]. To be
 brief *automatic differentiation* is a tool that allows you to
