@@ -380,7 +380,7 @@ end
 
 The associated *C* subroutines are:
 
-#+BEGIN_SRC C :tangle yes :tangle jaccard.c
+#+BEGIN_SRC C :tangle yes :main no :tangle jaccard.c
 #include <math.h>
 #include <stdint.h>
 
