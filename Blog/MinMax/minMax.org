@@ -146,87 +146,99 @@ rule:
 
 There is a big difference between the simple definition in
 *julia/base/operator.jl* and the *NaN* aware code of
-*julia/base/math.jl*. We can have a look at the assembly code:
+*julia/base/math.jl*. 
 
-#+BEGIN_SRC julia :exports code
-@code_native(min(Int(5),Int(6)))
+We can have a look at the assembly code.
+ 
+I would like to thank [[http://perimeterinstitute.ca/personal/eschnetter/][Erik Schnetter]] who made me noticed that Julia
+4.6 *@code_native* was bugged (see his comment at the end of this
+post). Hence to get the same result you must have a recent Julia
+version. In this post I use:
+
+#+BEGIN_SRC julia :exports both :results output
+versioninfo()
 #+END_SRC
 
-Gives 
-#+BEGIN_EXAMPLE
+#+RESULTS:
+#+begin_example
+Julia Version 0.5.0-dev+5453
+Commit 1fd440e (2016-07-15 23:33 UTC)
+Platform Info:
+  System: Linux (x86_64-linux-gnu)
+  CPU: Intel(R) Core(TM) i3 CPU       M 380  @ 2.53GHz
+  WORD_SIZE: 64
+  BLAS: libopenblas (USE64BITINT DYNAMIC_ARCH NO_AFFINITY Nehalem)
+  LAPACK: libopenblas64_
+  LIBM: libopenlibm
+  LLVM: libLLVM-3.7.1 (ORCJIT, westmere)
+#+end_example
+ 
+With this Julia version you get the following asm codes:
+
+#+BEGIN_SRC julia :exports both :results output :eval no-export
+@code_native(min(1,2))
+#+END_SRC
+
+gives
+
+#+RESULTS:
+#+begin_example
 	.text
+Filename: promotion.jl
+	pushq	%rbp
+	movq	%rsp, %rbp
+Source line: 257
 	cmpq	%rdi, %rsi
 	cmovgeq	%rdi, %rsi
 	movq	%rsi, %rax
+	popq	%rbp
 	retq
-	nopl	(%rax,%rax)
-	pushq	%rax
-	movq	(%rsi), %rax
-	movq	(%rax), %rdi
-	movq	8(%rsi), %rax
-	movq	(%rax), %rsi
-	movabsq	$min, %rax
-	callq	*%rax
-	movabsq	$jl_box_int64, %rcx
-	movq	%rax, %rdi
-	callq	*%rcx
-	popq	%rcx
-	retq
-#+END_EXAMPLE
+#+end_example
 
 whereas 
 
-#+BEGIN_SRC julia :exports code
-@code_native(min(Float64(5),Float64(6)))
+#+BEGIN_SRC julia :exports both :results output :eval no-export
+@code_native min(1.0,2.0)
 #+END_SRC
 
-Gives 
-#+BEGIN_EXAMPLE
-L66:	.text
+gives
+
+#+RESULTS:
+#+begin_example
+	.text
+Filename: math.jl
+	pushq	%rbp
+	movq	%rsp, %rbp
+Source line: 203
 	ucomisd	%xmm1, %xmm0
 	seta	%al
-	movd	%xmm1, %rcx
-	cmpq	$0, %rcx
-	setl	%cl
-	movd	%xmm0, %rdx
-	cmpq	$-1, %rdx
-	setg	%dl
+	movmskpd	%xmm1, %ecx
+	movmskpd	%xmm0, %edx
+	andl	$1, %edx
+	xorb	$1, %dl
 	andb	%cl, %dl
 	orb	%al, %dl
-	testb	$1, %dl
-	jne	L66
-	movapd	%xmm0, %xmm2
-	cmpordsd	%xmm2, %xmm2
-	andpd	%xmm2, %xmm0
-	andnpd	%xmm1, %xmm2
-	orpd	%xmm0, %xmm2
-	movapd	%xmm2, %xmm0
-	retq
+	je	L54
 	movapd	%xmm1, %xmm2
 	cmpordsd	%xmm2, %xmm2
 	andpd	%xmm2, %xmm1
 	andnpd	%xmm0, %xmm2
 	orpd	%xmm1, %xmm2
+	jmp	L75
+L54:
+	movapd	%xmm0, %xmm2
+	cmpordsd	%xmm2, %xmm2
+	andpd	%xmm2, %xmm0
+	andnpd	%xmm1, %xmm2
+	orpd	%xmm0, %xmm2
+L75:
 	movapd	%xmm2, %xmm0
+	popq	%rbp
 	retq
-	nopl	(%rax)
-	pushq	%rax
-	movq	(%rsi), %rax
-	movsd	(%rax), %xmm0           # xmm0 = mem[0],zero
-	movq	8(%rsi), %rax
-	movsd	(%rax), %xmm1           # xmm1 = mem[0],zero
-	movabsq	$min, %rax
-	callq	*%rax
-	movsd	%xmm0, (%rsp)
-	movabsq	$jl_gc_alloc_1w, %rax
-	callq	*%rax
-	movabsq	$140364146520656, %rcx  # imm = 0x7FA91317B250
-	movq	%rcx, -8(%rax)
-	movsd	(%rsp), %xmm0           # xmm0 = mem[0],zero
-	movsd	%xmm0, (%rax)
-	popq	%rcx
-	retq
-#+END_EXAMPLE
+	nopw	%cs:(%rax,%rax)
+#+end_example
+
+
 
 ** C++
 
@@ -432,10 +444,10 @@ make
 
 #+tblname: bench-table
 #+RESULTS:
-| jaccard_julia_NaN_aware  | 0.634061 | seconds | (25.57 | k | allocations: | 811.886 | KB) |
-| jaccard_C_NaN_aware      | 0.404112 | seconds | (12.26 | k | allocations: | 262.989 | KB) |
-| jaccard_julia_comparison | 0.206744 | seconds | (21.36 | k | allocations: | 601.927 | KB) |
-| jaccard_C_comparison     | 0.084586 | seconds | (12.24 | k | allocations: | 262.088 | KB) |
+| jaccard_julia_NaN_aware  | 0.460833 | seconds | (22.48 | k | allocations: | 699.198 | KB) |
+| jaccard_C_NaN_aware      | 0.468552 | seconds | (13.81 | k | allocations: | 322.915 | KB) |
+| jaccard_julia_comparison | 0.135785 | seconds | (18.80 | k | allocations: |  536.95 | KB) |
+| jaccard_C_comparison     | 0.105432 | seconds | (13.79 | k | allocations: |  322.42 | KB) |
 
 #+BEGIN_SRC gnuplot :var data=bench-table :file output.png :exports results
 reset
@@ -443,7 +455,13 @@ set xtics ("NaN aware" 0, "Comparison" 1)
 set ylabel "CPU time (seconds)"
 
 set boxwidth 0.5
-set style fill solid
+
+set terminal png transparent truecolor nocrop enhanced 
+
+#set style fill solid
+#set style fill pattern 
+set style fill transparent solid 0.5 noborder
+#set style fill transparent pattern 4 bo
 
 plot data every 2    using 2 with boxes ls 1 title "Julia",\
      data every 2::1 using 2 with boxes ls 4 title "C"
@@ -453,12 +471,24 @@ plot data every 2    using 2 with boxes ls 1 title "Julia",\
 [[file:output.png]]
 
 
-# output.png http://pixorblog.files.wordpress.com/2016/07/output.png
-
 We see that:
-- *C* is still faster than *Julia*
-- min()/max() using simple comparisons is more than *2 times* faster than an implementation
+- for the *NaN aware* case *C* and *Julia* running time is *equivalent*, great!
+- for the *Comparison* case *C* seems to be a little bit faster, but
+  the gap is very small and more precise benchmark would be necessary
+  to quantify it.
+- min()/max() using simple comparisons is more than *3.5 times* faster than an implementation
   taking into account possible *NaN* values.
+
+** Julia 4.6 previous results
+
+In the first version of this post, using *julia version 4.6*, I got this result:
+
+[[./output_4_6.png]]
+
+There was a clear advantage for the *C* code, but it seems this is not the case
+anymore with *julia version 0.5*.
+
+You can reproduce the results of this post, using the code available on [[https://github.com/vincent-picaud/DropBoxRepository/tree/master/Blog/MinMax][GitHub]].
 
 * A source of bugs?
 
@@ -552,8 +582,8 @@ print("\nAutoDiff gradient: $(ForwardDiff.gradient(f, x))")
 #+END_SRC
 
 #+RESULTS:
-: Original code: 1.0
-: AutoDiff code: [0.0,1.0]
+: Original value: 2.0
+: AutoDiff gradient: [0.0,1.0]
 
 which is *wrong*, in this case the *right* gradient is
 $$
@@ -562,7 +592,16 @@ $$
 
 * Final word
 
-If you are fed up with min()/max() you can use *absolute value*:
+- Concerning min()/max() examples of this post there is a big performance gain in using Julia version *5.0*.
+
+- The *@native_code* macro of Julia version *4.6* seems to be bugged.
+
+- It is "easy" to introduce bugs when you mix comparison operators and
+  IEEE 754 min()/max() functions. Implementing min()/max() in a
+  Automatic Differentiation framework is one perfect illustration of
+  this and was the point that motivated me to write this post.
+
+- (Joke) If you are fed up with min()/max() you can use *absolute value*:
 $$
 min(x,y)=\frac{1}{2}(|x+y|-|x-y|)
 $$
@@ -574,5 +613,9 @@ $$
 
 
 I would like to thank my colleague JP. Both for having noticed that
-min()/max() was "abnormally" slow and Y. Borstein for some emails
-exchanges concerning min()/max() in Julia.
+min()/max() was "abnormally" slow (Julia 4.6), Y. Borstein for some emails
+exchanges concerning min()/max() in Julia (before I wrote this post),
+Erik Schnetter who told me to switch to a more recent Julia version.
+
+# output.png http://pixorblog.files.wordpress.com/2016/07/output1.png
+# ./output_4_6.png http://pixorblog.files.wordpress.com/2016/07/output_4_6.png
