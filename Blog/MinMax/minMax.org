@@ -573,7 +573,7 @@ We can check that, for instance, with [[https://github.com/JuliaDiff/ForwardDiff
 
 (githash: 045a828)
 
-#+BEGIN_SRC julia :results output :exports both
+#+BEGIN_SRC julia :exports both :results output :eval no-export
 using ForwardDiff
 f(x::Vector)=max(2*x[1],x[2]);
 x=[1.,NaN]
@@ -585,6 +585,7 @@ print("\nAutoDiff gradient: $(ForwardDiff.gradient(f, x))")
 : Original value: 2.0
 : AutoDiff gradient: [0.0,1.0]
 
+
 which is *wrong*, in this case the *right* gradient is
 $$
 \nabla [(x_1,x_2)\rightarrow max(2.x_1,x_2)]_{x_1=1,x_2=NaN}=(2,0)
@@ -592,7 +593,14 @@ $$
 
 * Final word
 
-- Concerning min()/max() examples of this post there is a big performance gain in using Julia version *5.0*.
+- Concerning min()/max() examples of this post I have observed a big performance gain in using Julia version *5.0*.
+  Which is not clear is the reason of this gain:
+  - I compiled my own version of Julia 5.0, but I used the 4.6 version
+    shipped with Debian. Maybe my compiled version uses some different
+    compiler flags (like -march=native...).
+  - or there is a real improvement between version 4.6 -> 5.0
+  You can reproduce the benchmark using the code available on [[https://github.com/vincent-picaud/DropBoxRepository/tree/master/Blog/MinMax][GitHub]].
+  Any feed back is welcome.
 
 - The *@native_code* macro of Julia version *4.6* seems to be bugged.
 
