@@ -1,0 +1,320 @@
+#+BLOG: wordpress
+#+POSTID: 391
+#+DATE: [2016-07-17 Sun 17:16]
+#+OPTIONS: toc:nil num:nil todo:nil pri:nil tags:nil ^:nil
+#+CATEGORY: Cpp, Julia, Computations
+#+TAGS:
+#+DESCRIPTION:
+#+TITLE: Direct convolution 
+
+# #+LATEX_HEADER: \usepackage[ruled,vlined,algonl]{algorithm2e}   
+#+LATEX_HEADER: \usepackage{algorithm2e}   
+
+# #+LATEX_HEADER: \usepackage{stmaryrd}
+# #+LATEX_HEADER: \usepackage{amsmath}
+# #+LATEX_HEADER: \usepackage[utf8]{inputenc}
+# # bracket http://osdir.com/ml/MathJax-Users/2011-08/msg00054.html
+# # unicode http://ergoemacs.org/emacs/emacs_n_unicode.html
+# # ⟦ ⟧
+
+For small kernels, direct convolution beats FFT based one. I present
+here a basic implementation. This implementation will allow to compute 
+$$
+\gamma[k]=\sum\limits_{i\in\Omega^\alpha}\alpha[i]\beta[i+\lambda k],\text{ with }\lambda\in\mathbb{Z}^*\text{\ \ \ \ \ \ \ \ \ \ \ \ (1)}
+$$
+From time to time we will use the notation $\gamma=\alpha\bigodot\limits_\lambda\beta$.
+
+An arbitrary stride $\lambda$ has been introduced to define:
+  - $\lambda=-1$ convolution
+  - $\lambda=+1$ cross-correlation 
+  - $\lambda=\pm 2^n$ the [[https://en.wikipedia.org/wiki/Stationary_wavelet_transform][stationary wavelet transform]] (the so called [[http://ieeexplore.ieee.org/xpls/abs_all.jsp?arnumber=157290]["à trous" algorithm]])
+
+Also note that with proper boundary extension (*periodic* and *zero padding* essentially), changing the sign of
+$\lambda$ gives the *adjoint* operator:
+
+$$
+\langle \delta, \alpha\bigodot\limits_\lambda\beta \rangle = \langle \alpha\bigodot\limits_{-\lambda}\delta,\beta \rangle 
+$$
+
+** Disclaimer 
+
+Maybe the following is overwhelmingly detailed for a simple task like Eq. (1), but on my side I have
+found interesting to have written this once for all. 
+
+Maybe it can be useful for someone else.
+
+* Some notations
+
+We note $\Omega$ the domain of our vectors, for instance
+
+\begin{equation}
+\Omega^\alpha =\llbracket i_{\min} ,i_{\max} \rrbracket
+\end{equation}
+
+means that $\alpha[i]$ is defined for 
+$$ 
+i\in \llbracket i_{\min}, i_{\max} \rrbracket 
+$$
+
+To get interval lower/upper bounds we use the notation
+$$
+i_{\min}=l(\Omega^\alpha)\text{ and }i_{\max}=u(\Omega^\alpha)
+$$
+
+We denote by $\lambda\Omega$ the scaled domain $\Omega$ defined by:
+$$
+\lambda\Omega = \{ \lambda i\ /\ i\in\Omega \}
+$$
+
+It is immediate to see that:
+$$
+\lambda\Omega=\llbracket \lambda^+\,i_{min}+\lambda^-\,i_{max},  \lambda^+\,i_{max}+\lambda^-\,i_{min} \rrbracket
+$$
+
+where $\lambda^+=\max{(0,\lambda)}$ and $\lambda^-=\min{(0,\lambda)}$
+
+Finally we use $A\setminus B$ the relative complement of $B$ with respect to the set $A$ defined by
+$$
+A\setminus B = \{ i\ /\ (i\in A) \wedge (i\notin B) \}
+$$
+
+This set is not necessary connex, however like we are working in $\mathbb{Z}$, it is sufficient to introduce the left and right parts (that can be empty)
+
+$$
+(A\setminus B)_{\text{Left}}=\llbracket  l(A), \min{(u(A),l(B)-1)} \rrbracket
+$$
+$$
+(A\setminus B)_{\text{Right}}=\llbracket \max{(l(A),u(B)+1)}, u(A) \rrbracket
+$$
+
+* Goal
+
+Given two vectors $\alpha$, $\beta$ defined on $\Omega^\alpha$,
+$\Omega^\beta$ we want to define and implement an algorithm that
+computes $\gamma[k]$ for $k\in\Omega^\gamma$.
+
+
+** First step, no boundary extension
+
+  We need to define the $\Omega^\gamma_1$ the domain that does not violate $\beta$ domain of definition. This can be expressed as
+  $$
+  \Omega^\gamma_1=\{k\in\mathbb{Z}\ /\ \forall i \in \Omega^\alpha \Rightarrow k+\lambda i \in \Omega^\beta \}
+  $$
+
+  I write all the details because it is error prone
+  $$
+  (\forall i \in \Omega^\alpha  \Rightarrow k+\lambda i \in \Omega^\beta)\Leftrightarrow (\forall i \in \Omega^\alpha \Rightarrow l(\Omega^\beta)-\lambda i \le k \le u(\Omega^\beta)-\lambda i)
+  $$
+  $$
+  \Leftrightarrow \max\limits_{i\in \Omega^\alpha} l(\Omega^\beta)-\lambda i \le k \le \min\limits_{i\in \Omega^\alpha} u(\Omega^\beta)-\lambda i
+  $$
+  $$
+  \Leftrightarrow l(\Omega^\beta)-l(\lambda \Omega^\alpha) \le k \le u(\Omega^\beta)-u(\lambda \Omega^\alpha)
+  $$
+  hence we have
+  $$
+  \boxed{
+  \Omega^\gamma_1=\llbracket  l(\Omega^\beta)-l(\lambda \Omega^\alpha) , u(\Omega^\beta)-u(\lambda \Omega^\alpha) \rrbracket
+  }
+  $$
+
+Hence the computation of $\gamma[k],\ k\in\Omega^\gamma$ (Eq. 1) is splitted into two parts:  
+ - one part $\Omega^\gamma \cap \Omega^\gamma_1$ free of boundary effect  
+ - one part $\Omega^\gamma \setminus \Omega^\gamma_1$ that requires boundary extension $\tilde{\beta}=\Phi(\beta,k)$
+
+The algorithm takes the following form:
+
+#+begin_src latex :file latex-test.png :exports results
+\begin{algorithm}[H]
+  \tcp{Initialization of $\gamma$}
+  \For{$k\in\Omega^\gamma$}{
+    $\gamma[k]=0$ \;
+  }
+  \tcp{Free of boundary effect}
+  \For{$k\in\Omega^\gamma\cap\Omega^\gamma_1$}{
+    \For{$i\in\Omega_\alpha$}{
+      $\gamma[k]=\gamma[k]+\alpha[i]\,\beta[k+\lambda i]$ \;
+    }
+  }
+  \tcp{Left boundary extension}
+  $\Omega^\gamma_{1, Left}=(\Omega^\gamma\setminus \Omega^\gamma_1)_{Left}$ \;
+
+  \For{$k\in\Omega^\gamma_{1, Left}$}{
+    \For{$i\in\Omega_\alpha$}{
+      $\tilde{\beta}=\Phi(\beta,k+\lambda i)$ \;
+      $\gamma[k]=\gamma[k]+\alpha[i]\,\tilde{\beta}$ \;
+    }
+  }
+  \tcp{Right boundary extension}
+  $\Omega^\gamma_{1, Right}=(\Omega^\gamma\setminus \Omega^\gamma_1)_{Right}$ \;
+  
+  \For{$k\in\Omega^\gamma_{1, Right}$}{
+    \For{$i\in\Omega_\alpha$}{
+      $\tilde{\beta}=\Phi(\beta,k+\lambda i)$ \;
+      $\gamma[k]=\gamma[k]+\alpha[i]\,\tilde{\beta}$ \;
+    }
+  }
+\end{algorithm}
+#+end_src
+
+#+RESULTS:
+#+BEGIN_LaTeX
+[[file:latex-test.png]]
+#+END_LaTeX
+
+[[file:latex-test.png]]
+
+
+** Second step, boundary extensions
+
+Usually we define some classical boundary extensions. These extensions
+are computed from $\beta[.]$ and are sometimes entailed by a *validity
+condition*. For a better clarity I give explicit loew/upper bound:
+
+$$
+\Omega^\beta = \llbracket  j_{\min} , j_{\max} \rrbracket \neq \emptyset
+$$
+
+|------------------------------+-------------------------------------------------+------------------------------|
+| Left boundary  $(j<j_{min})$ | $\tilde{\beta}_j = \Phi_{left}(\beta,j)$        | validity condition           |
+|------------------------------+-------------------------------------------------+------------------------------|
+| Mirror                       | $\tilde{\beta}_j  = \beta[2\,j_{min}-j]$        | $2\,j_{min}-j_{max} \le j$   |
+| Periodic (or cyclic)         | $\tilde{\beta}_j =  \beta[j_{max}-j_{min}+j+1]$ | $2\,j_{min}-j_{max}-1 \le j$ |
+| Constant                     | $\tilde{\beta}_j = \beta[j_{min}]$              | none                         |
+| Zero padding                 | $\tilde{\beta}_j = 0$                           | none                         |
+|------------------------------+-------------------------------------------------+------------------------------|
+
+
+|------------------------------+-------------------------------------------------+-----------------------------|
+| Right boundary $(j>j_{max})$ | $\tilde{\beta}_j = \Phi_{right}(\beta,j)$       | validity condition          |
+|------------------------------+-------------------------------------------------+-----------------------------|
+| Mirror                       | $\tilde{\beta}_j  = \beta[2\,j_{max}-j]$        | $j\le 2\,j_{max}-j_{min}$   |
+| Periodic (or cyclic)         | $\tilde{\beta}_j = \beta[-j_{max}+j_{min}+j-1]$ | $j\le 2\,j_{max}-j_{min}+1$ |
+| Constant                     | $\tilde{\beta}_j = \beta[j_{max}]$              | none                        |
+| Zero padding                 | $\tilde{\beta}_j = 0$                           | none                        |
+|------------------------------+-------------------------------------------------+-----------------------------|
+
+As we want something general we want to get rid of these validity
+conditions. To reach this goal, we first examine how to extend a real
+function, we then give the discrete counterpart.
+
+*** Periodic case
+
+A discrete function $f_J$ defined on $\mathbb{Z}$ is periodic of
+period $J$ if it fulfills the $f_J[j+J]=f_J[j]$
+relation.
+
+In particular if $J=j_{\max}+1-j_{\min}$, we must have 
+$$
+f_J[j_{\min}+J]=f_J[j_{\max}+1]=f_J[j_{\min}]
+$$
+
+Now, starting from any function $f$ defined on $\llbracket j_{\min},
+j_{\max} \rrbracket$ we want to build a periodic one. To do this we
+use the $\phi_J: \mathbb{Z} \mapsto \mathbb{R}$ mapping defined by 
+
+$$
+\phi_J(j)=\frac{j-j_{\min}}{j_{\max}+1-j_{\min}}
+$$
+
+Note that, if $j \in \llbracket j_{\min}, j_{\max} \rrbracket$ then $\phi_J(j)\in[0,1[$.
+
+Its inverse is
+
+$$
+\phi_J^{(-1)}(x)=j_{\min}+x(j_{\max}+1-j_{\min})
+$$
+
+To define our periodic function the trick is to use 
+
+$$
+P_{[0,1[}=x-\lfloor x \rfloor
+$$
+
+where $x\rightarrow \lfloor x \rfloor$ is the function that returns
+the greatest integer less than or equal to $x$.
+
+#+BEGIN_SRC mathematica :exports results :results file 
+p=Plot[x - Floor[x], {x, -2, 2}, PlotLabel -> x-Floor[x]];
+Export["P_func.png",p];
+Print["P_func.png"]
+#+END_SRC
+
+#+RESULTS:
+[[file:P_func.png]]
+
+
+The periodized $f_J$ function of period $J=j_{\max}+1-j_{\min}$ is then:
+
+$$
+f_J(j)=f \circ \phi_J^{(-1)} \circ P_{[0,1[} \circ \phi_J(j)
+$$
+
+hence, after some algebra
+
+$$
+f_J(j)=f( (-\text{jmax}+\text{jmin}-1) \left\lfloor \frac{j-\text{jmin}}{\text{jmax}-\text{jmin}+1}\right\rfloor +j )
+$$
+
+To create a function with mirror symmetry we can use the triangular function $T:[0,2[ \rightarrow [0,1]$, $T(x)=1-|1-x|$ and make it periodic using $P_{[0,2[}$ we get:
+$$
+T\circ P_{[0,2[}(x)=1-\left|1-x+2 \left\lfloor \frac{x}{2}\right\rfloor \right|
+$$
+
+#+BEGIN_SRC mathematica :exports results :results file 
+p=Plot[1 - Abs[1 - x + 2*Floor[x/2]], {x, -4, 4},  PlotLabel -> 1 - Abs[1 - x + 2*Floor[x/2]]];
+Export["T_func.png",p];
+Print["T_func.png"]
+#+END_SRC
+
+#+RESULTS:
+[[file:T_func.png]]
+
+* Complement: more domains
+
+** The $\Omega^\gamma_2$ domain
+
+We have introduced $\Omega^\gamma_1$ the domain that does not violate $\beta$ domain of definition (given $\Omega^\alpha$ and $\Omega^\beta$).
+
+To be exhaustive we can introduce $\Omega^\gamma_2$ the domain that use *at least one* $(i,k+\lambda i)\in \Omega^\alpha \times \Omega^\beta$.
+
+This domain is:
+$$
+\Omega^\gamma_2=\{ k\in\mathbb{Z}\ /\ \exists i \in \Omega^\alpha \Rightarrow k+\lambda i \in \Omega^\beta \}
+$$
+following arguments similar to those used for $\Omega^\gamma_1$ we get:
+$$
+\boxed{
+ \Omega^\gamma_2=\llbracket  l(\Omega^\beta)-u(\lambda \Omega^\alpha) , u(\Omega^\beta)-l(\lambda \Omega^\alpha) \rrbracket
+ }
+$$
+
+** The $\Omega^\beta_{2'}$ domain
+
+We can also ask for the "*dual*" question: given $\Omega^\alpha$ and $\Omega^\gamma$ what is the domain of $\beta$, $\Omega^\beta_{2'}$, involved in the computation of $\gamma$
+
+By definition, this domain must fulfill the following relation:
+$$
+\Omega^\gamma_2(\Omega^\beta_{2'})=\Omega^\gamma
+$$
+
+hence, using the previous result
+$$
+\llbracket  l(\Omega^\beta_{2'})-u(\lambda \Omega^\alpha) , u(\Omega^\beta_{2'})-l(\lambda \Omega^\alpha) \rrbracket = \llbracket l(\Omega^\gamma),u(\Omega^\gamma) \rrbracket
+$$
+which gives:
+$$
+\boxed{
+\Omega^\beta_{2'} = \llbracket l(\Omega^\gamma)+u(\lambda \Omega^\alpha),u(\Omega^\gamma)+l(\lambda \Omega^\alpha) \rrbracket
+}
+$$
+
+
+
+
+
+
+
+# latex-test.png http://pixorblog.files.wordpress.com/2016/07/latex-test5.png
+# P_func.png http://pixorblog.files.wordpress.com/2016/07/p_func1.png
+# T_func.png http://pixorblog.files.wordpress.com/2016/07/t_func1.png
