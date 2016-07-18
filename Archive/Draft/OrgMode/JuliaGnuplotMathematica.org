@@ -99,6 +99,18 @@ Result
 
 * Mathematica code
 
+** Plot example
+
+#+BEGIN_SRC mathematica :exports results :results file 
+p=Plot[x - Floor[x], {x, -2, 2}, PlotRange -> {-0.1, 1.1}, Axes -> False, Frame -> True];
+Export["P_func.png",p];
+Print["P_func.png"]
+#+END_SRC
+
+#+RESULTS:
+[[file:P_func.png]]
+
+
 ** Example 1
 
 #+BEGIN_SRC mathematica :exports both :results latex
