@@ -237,11 +237,16 @@ the greatest integer less than or equal to $x$.
 #+BEGIN_SRC mathematica :exports results :results file 
 p=Plot[x - Floor[x], {x, -2, 2}, PlotLabel -> x-Floor[x]];
 Export["P_func.png",p];
-Print["P_func.png"]
+(*Print["P_func.png"];*)
+"P_func.png"
 #+END_SRC
 
 #+RESULTS:
 [[file:P_func.png]]
+
+
+
+
 
 
 The periodized $f_J$ function of period $J=j_{\max}+1-j_{\min}$ is then:
@@ -264,7 +269,8 @@ $$
 #+BEGIN_SRC mathematica :exports results :results file 
 p=Plot[1 - Abs[1 - x + 2*Floor[x/2]], {x, -4, 4},  PlotLabel -> 1 - Abs[1 - x + 2*Floor[x/2]]];
 Export["T_func.png",p];
-Print["T_func.png"]
+(*Print["T_func.png"];*)
+"T_func.png"
 #+END_SRC
 
 #+RESULTS:
