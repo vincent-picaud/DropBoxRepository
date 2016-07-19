@@ -20,7 +20,7 @@
 For small kernels, direct convolution beats FFT based one. I present
 here a basic implementation. This implementation will allow to compute 
 $$
-\gamma[k]=\sum\limits_{i\in\Omega^\alpha}\alpha[i]\beta[i+\lambda k],\text{ with }\lambda\in\mathbb{Z}^*\text{\ \ \ \ \ \ \ \ \ \ \ \ (1)}
+\gamma[k]=\sum\limits_{i\in\Omega^\alpha}\alpha[i]\beta[k+\lambda i],\text{ with }\lambda\in\mathbb{Z}^*\text{\ \ \ \ \ \ \ \ \ \ \ \ (1)}
 $$
 From time to time we will use the notation $\gamma=\alpha\bigodot\limits_\lambda\beta$.
 
@@ -141,7 +141,7 @@ The algorithm takes the following form:
 
   \For{$k\in\Omega^\gamma_{1, Left}$}{
     \For{$i\in\Omega_\alpha$}{
-      $\tilde{\beta}=\Phi(\beta,k+\lambda i)$ \;
+      $\tilde{\beta}=\Phi_{Left}(\beta,k+\lambda i)$ \;
       $\gamma[k]=\gamma[k]+\alpha[i]\,\tilde{\beta}$ \;
     }
   }
@@ -150,7 +150,7 @@ The algorithm takes the following form:
   
   \For{$k\in\Omega^\gamma_{1, Right}$}{
     \For{$i\in\Omega_\alpha$}{
-      $\tilde{\beta}=\Phi(\beta,k+\lambda i)$ \;
+      $\tilde{\beta}=\Phi_{Right}(\beta,k+\lambda i)$ \;
       $\gamma[k]=\gamma[k]+\alpha[i]\,\tilde{\beta}$ \;
     }
   }
@@ -169,7 +169,7 @@ The algorithm takes the following form:
 
 Usually we define some classical boundary extensions. These extensions
 are computed from $\beta[.]$ and are sometimes entailed by a *validity
-condition*. For a better clarity I give explicit loew/upper bound:
+condition*. For a better clarity I give explicit lower/upper bounds:
 
 $$
 \Omega^\beta = \llbracket  j_{\min} , j_{\max} \rrbracket \neq \emptyset
@@ -195,86 +195,392 @@ $$
 |------------------------------+-------------------------------------------------+-----------------------------|
 
 As we want something general we want to get rid of these validity
-conditions. To reach this goal, we first examine how to extend a real
-function, we then give the discrete counterpart.
+conditions.
 
 *** Periodic case
 
-A discrete function $f_J$ defined on $\mathbb{Z}$ is periodic of
-period $J$ if it fulfills the $f_J[j+J]=f_J[j]$
-relation.
+Starting from a function $\beta$ defined on $\llbracket 0, N \rrbracket$
+we want to define a periodic function $\tilde{\beta}$ of period $T=N+1$.
+This function must fulfills the $\tilde{\beta}[j+T]=\tilde{\beta}[j]$ relation.
 
-In particular if $J=j_{\max}+1-j_{\min}$, we must have 
+We can do that by considering $\tilde{\beta}=\beta \circ \phi^P_N(j)$ where
 $$
-f_J[j_{\min}+J]=f_J[j_{\max}+1]=f_J[j_{\min}]
+\phi^P_N(j)=\bmod_F(j,N)
 $$
+and $\bmod_F$ is the modulus function associated to a [[https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/divmodnote-letter.pdf][floored division]].
 
-Now, starting from any function $f$ defined on $\llbracket j_{\min},
-j_{\max} \rrbracket$ we want to build a periodic one. To do this we
-use the $\phi_J: \mathbb{Z} \mapsto \mathbb{R}$ mapping defined by 
-
+For a function defined on an arbitrary domain $\llbracket j_{\min},
+j_{\max} \rrbracket$, we first translate the indices
 $$
-\phi_J(j)=\frac{j-j_{\min}}{j_{\max}+1-j_{\min}}
+\tau_{j_{\min}}(j)=j-j_{\min}
 $$
+and then translate them back using $\tau^{(-1)}_{j_{\min}}=\tau_{-j_{\min}}$
 
-Note that, if $j \in \llbracket j_{\min}, j_{\max} \rrbracket$ then $\phi_J(j)\in[0,1[$.
+Putting all together, we build a periodized function 
 
-Its inverse is
+$$ \boxed{\tilde{\beta} = \beta \circ \phi^P_{j_{\min},j_{\max}}} $$
 
-$$
-\phi_J^{(-1)}(x)=j_{\min}+x(j_{\max}+1-j_{\min})
-$$
-
-To define our periodic function the trick is to use 
+where
 
 $$
-P_{[0,1[}=x-\lfloor x \rfloor
+\phi^P_{j_{\min},j_{\max}} = \tau^{(-1)}_{j_{\min}} \circ  \phi^P_{j_{\max}- j_{\min}} \circ \tau_{j_{\min}}
 $$
 
-where $x\rightarrow \lfloor x \rfloor$ is the function that returns
-the greatest integer less than or equal to $x$.
-
-#+BEGIN_SRC mathematica :exports results :results file 
-p=Plot[x - Floor[x], {x, -2, 2}, PlotLabel -> x-Floor[x]];
-Export["P_func.png",p];
-(*Print["P_func.png"];*)
-"P_func.png"
-#+END_SRC
-
-#+RESULTS:
-[[file:P_func.png]]
-
-
-
-
-
-
-The periodized $f_J$ function of period $J=j_{\max}+1-j_{\min}$ is then:
-
 $$
-f_J(j)=f \circ \phi_J^{(-1)} \circ P_{[0,1[} \circ \phi_J(j)
+\boxed{\phi^P_{j_{\min},j_{\max}} = j_{\min} + \bmod_F(j-j_{\min},j_{\max}- j_{\min})}
 $$
 
-hence, after some algebra
+
+*** Mirror Symmetry case
+
+Starting from a function $\beta$ defined on $\llbracket 0, N \rrbracket$
+we can extend it by mirror symmetry on $\llbracket N+1, 2N \rrbracket$
+using
+$$
+\phi^M_N(j)=N-|N-j| 
+$$
+
+The resulting function $\tilde{\beta}=\beta\circ \phi^M_N$  fulfills the
+$\tilde{\beta}[N-j]=\tilde{\beta}[N+j]$ relation for $j\in \llbracket 0, N
+\rrbracket$.
+
+To get a "global" definition we then periodize it on $\llbracket 0, 2N \rrbracket$
+using $\phi^P_{2N}$.
+
+For an arbitrary domain $\llbracket j_{\min}, j_{\max} \rrbracket$ we use index translation as for the periodic case.
+Putting everything together we get:
+
+$$ \boxed{\tilde{\beta} = \beta \circ \phi^M_{j_{\min},j_{\max}}} $$
+
+where
 
 $$
-f_J(j)=f( (-\text{jmax}+\text{jmin}-1) \left\lfloor \frac{j-\text{jmin}}{\text{jmax}-\text{jmin}+1}\right\rfloor +j )
+\phi^M_{j_{\min},j_{\max}} =  \tau^{(-1)}_{j_{\min}} \circ \phi^M_{j_{\max}- j_{\min}} \circ  \phi^P_{2(j_{\max}- j_{\min})} \circ \tau_{j_{\min}}
 $$
 
-To create a function with mirror symmetry we can use the triangular function $T:[0,2[ \rightarrow [0,1]$, $T(x)=1-|1-x|$ and make it periodic using $P_{[0,2[}$ we get:
 $$
-T\circ P_{[0,2[}(x)=1-\left|1-x+2 \left\lfloor \frac{x}{2}\right\rfloor \right|
+\boxed{
+\phi^M_{j_{\min},j_{\max}} =j_{\max}-|j_{\max}-j_{\min}-\bmod_F(j-j_{\min},2(j_{\max}-j_{\min}))|
+}
 $$
 
-#+BEGIN_SRC mathematica :exports results :results file 
-p=Plot[1 - Abs[1 - x + 2*Floor[x/2]], {x, -4, 4},  PlotLabel -> 1 - Abs[1 - x + 2*Floor[x/2]]];
-Export["T_func.png",p];
-(*Print["T_func.png"];*)
-"T_func.png"
-#+END_SRC
+** Boundary extensions
 
-#+RESULTS:
-[[file:T_func.png]]
+To use the algorithm with boundary extensions, you only have to
+define: $$ \tilde{\beta}=\Phi(\beta,k+\lambda
+i)=\beta[\phi^X[k+\lambda i]] $$ where $\phi$ is the boundary
+extension you have chosen (periodic, constant...). You do not have to
+take care of any validity condition, these formula are general.
+
+* Implementation
+
+This is a straightforward implementation following the presented
+algorithm. We did not try to optimize it, this would have obscured the
+presentation.
+
+** Preamble
+
+*** Index translation / domain definition
+
+There is however one last thing we have to explain. In languages like
+Julia, C... we are manipulating arrays that all have a common starting
+index: $1$ in Julia, Fortran..., $0$ in C, C++...
+
+For this reason we do not manipulate $\alpha$ on $\Omega^\alpha$ but
+an another translated array $\tilde{\alpha}$ defined on $\llbracket 1,
+N^\alpha \rrbracket$ (Julia) or $\llbracket 0,
+N^\alpha-1 \rrbracket$ (C++).
+
+To cover all cases, I assume that the starting index is denoted by
+$\tilde{i}_0$.
+
+The array $\tilde{\alpha}$ is defined by:
+
+$$
+\alpha[i] =  \tilde{\alpha}[\tilde{i}] = \tilde{\alpha}[i-l(\Omega^\alpha)+\tilde{i}_0]
+$$
+
+Hence we must modify the initiale Eq. (1) to use $\tilde{\alpha}$ instead of $\alpha$
+
+$$
+\gamma[k]=\sum\limits_{i\in\Omega^\alpha}\alpha[i]\beta[k+\lambda i] = \sum\limits_{i\in\Omega^\alpha}\tilde{\alpha}[i-l(\Omega^\alpha)+\tilde{i}_0]\beta[k+\lambda i]
+$$
+
+With $\tilde{i}=i-l(\Omega^\alpha)+\tilde{i}_0$ we have 
+$$
+i\in\Omega^\alpha \Leftrightarrow \tilde{i}\in\llbracket \tilde{i}_0,u(\Omega^\alpha)-l(\Omega^\alpha)+\tilde{i}_0 \rrbracket
+$$
+and
+$$
+k+\lambda i = k+ \lambda \tilde{i} + \lambda (l(\Omega^\alpha) - \tilde{i}_0)
+$$
+
+Thus, Eq (1) becomes:
+
+$$
+\boxed{
+\gamma[k]=\sum\limits_{\tilde{i}=\tilde{i}_0}^{u(\Omega^\alpha)-l(\Omega^\alpha)+\tilde{i}_0}\tilde{\alpha}[\tilde{i}]\beta[k+
+\lambda \tilde{i} + \underbrace{\lambda (l(\Omega^\alpha) -
+\tilde{i}_0)}_{\beta\_\text{offset}}]} $$
+
+The $2$ other arrays are less problematic:
+ - For $\beta$ array, which is our input array, we implicitly use $\Omega^\beta = \llbracket \tilde{i}_0, \tilde{i}_0 + \text{length}(\beta) - 1 \rrbracket$.
+   This does not reduce the generality of the subroutine.
+ - For $\gamma$ which is the output array, as for $\beta$ we assume it
+   is defined on $\llbracket \tilde{i}_0, \tilde{i}_0 +
+   \text{length}(\gamma) - 1 \rrbracket$, but we provide
+   $\Omega^\gamma\subset \llbracket \tilde{i}_0, \tilde{i}_0 +
+   \text{length}(\gamma) - 1 \rrbracket$ to define the components we
+   want to compute. The other components,  $\llbracket \tilde{i}_0, \tilde{i}_0 +
+   \text{length}(\gamma) - 1 \rrbracket \setminus \Omega^\gamma$, will remain unmodified by the
+   subroutine.
+
+*** Definition of $\alpha\_\text{offset}$ 
+
+As we have seen before, the convolution subroutine will have $\tilde{\alpha}$ as argument, but we also need $\Omega^\alpha$. 
+For the driver subroutine we do not directly provide this interval because its length is *redundant* with $\tilde{\alpha}$ length.
+Instead we provide an $\alpha\_\text{offset}$ offset. $\Omega^\alpha$ is deduced from:
+
+$$
+\Omega^\alpha = \llbracket -\alpha\_\text{offset}, -\alpha\_\text{offset} + \text{length}(\tilde{\alpha}) -1 \rrbracket
+$$
+
+This $\alpha\_\text{offset}$ does not depend on $\tilde{i}_0$. With
+$\alpha\_\text{offset}=0$ you are in the "usual situation", other
+choices are possible, for instance if you have a smoothing window of
+size $2w+1$, it is generally a good idea to use
+$\alpha\_\text{offset}=w$ (middle of the window) to avoid signal
+shift.
+
+** Julia
+
+*** Auxiliary subroutines
+
+We start by defining the basic operations on sets:
+
+#+begin_src julia :name jl_set.jl
+function scale(λ::Int,Ω::UnitRange)
+    ifelse(λ>0,
+           UnitRange(λ*start(Ω),λ*last(Ω)),
+           UnitRange(λ*last(Ω),λ*start(Ω)))
+end
+
+function compute_Ωγ1(Ωα::UnitRange,
+                     λ::Int,
+                     Ωβ::UnitRange)
+    
+    λΩα = scale(λ,Ωα)
+
+    UnitRange(start(Ωβ)-start(λΩα),
+              last(Ωβ)-last(λΩα))
+end
+
+function compute_Ωγ2(Ωα::UnitRange,
+                     λ::Int,
+                     Ωβ::UnitRange)
+    
+    λΩα = scale(λ,Ωα)
+
+    UnitRange(start(Ωβ)-last(λΩα),
+              last(Ωβ)-start(λΩα))
+end
+
+# Left & Right relative complements A\B
+#
+function relelativeComplement_left(A::UnitRange,
+                                   B::UnitRange)
+    UnitRange(start(A),
+              min(last(A),start(B)-1))
+end
+
+function relelativeComplement_right(A::UnitRange,
+                                    B::UnitRange)
+    UnitRange(max(start(A),last(B)+1),
+              last(A))
+end
+#+end_src
+
+*** Boundary extensions
+
+We then define our periodic extensions. Nothing special there, we only
+had to check that the Julia *mod(x,y)* function is the floored division
+version (by opposition to the *rem(x,y)* function which is the rounded
+toward zero division version).
+
+#+begin_src julia :name jl_boundary
+function boundaryExtension_zeroPadding{T}(β::StridedVector{T},
+                                          k::Int)
+    kmin = 1
+    kmax = length(β)
+    
+    ifelse((k>=1)&&(k<=kmax),
+           β[k],
+           T(0))
+end
+
+function boundaryExtension_constant{T}(β::StridedVector{T},
+                                       k::Int)
+    kmin = 1
+    kmax = length(β)
+
+    if k<kmin
+        β[kmin]
+    elseif k<=kmax
+        β[k]
+    else
+        β[kmax]
+    end
+end
+
+function boundaryExtension_periodic{T}(β::StridedVector{T},
+                                       k::Int)
+    kmin = 1
+    kmax = length(β)
+
+    kmin+mod(k-kmin,kmax-kmin)
+end
+
+function boundaryExtension_mirror{T}(β::StridedVector{T},
+                                     k::Int)
+    kmin = 1
+    kmax = length(β)
+
+    kmax-abs(kmax-kmin-mod(k-kmin,2*(kmax-kmin)))
+end
+
+# For the user interface
+#
+boundaryExtension = Dict(:ZeroPadding=>boundaryExtension_zeroPadding,
+                         :Constant=>boundaryExtension_constant,
+			 :Periodic=>boundaryExtension_periodic
+			 :Mirror=>boundaryExtension_mirror)
+#+end_src
+
+*** Main subroutines
+
+Finally we define the main subroutine. Its arguments have been defined in the *preamble* part.
+
+#+begin_src julia :name jl_boundary
+function direct_conv!{T}(tilde_α::StridedVector{T},
+                         Ωα::UnitRange,
+                         λ::Int,
+                         β::StridedVector{T},
+                         γ::StridedVector{T},
+                         Ωγ::UnitRange,
+                         LeftBoundary::Symbol,
+                         RightBoundary::Symbol)
+    # Sanity check
+    assert λ!=0
+    assert length(tilde_α)==length(Ωα)
+    assert (start(Ωγ)>=1)&&(last(Ωγ)<=length(γ))
+
+    # Initialization
+    Ωβ = UnitRange(1,length(β))
+    tilde_Ωα = 1:length(Ωα)
+    
+    for k in Ωγ
+      γ[k]=0 
+
+    rΩγ1=intersect(Ωγ,compute_Ωγ1(Ωα,λ,Ωβ))
+  
+    # rΩγ1 part: no boundary effect
+    #
+    offset = λ*(start(Ωα)-1)
+    for k in rΩγ1
+        for i in tilde_Ωα
+            γ[k]+=tilde_α[i]*β[k+λ*i+offset]
+        end
+    end
+
+    # Left part
+    #
+    rΩγ1_left = relelativeComplement_left(Ωγ,rΩγ1)
+    Φ_left = boundaryExtension[LeftBoundary]
+    
+    for k in rΩγ1_left
+        for i in tilde_Ωα
+            γ[k]+=tilde_α[i]*Φ_left(β,k+λ*i+offset)
+        end
+    end
+
+    # Right part
+    #
+    rΩγ1_right = relelativeComplement_right(Ωγ,rΩγ1)
+    Φ_right = boundaryExtension[RightBoundary]
+    
+    for k in rΩγ1_right
+        for i in tilde_Ωα
+            γ[k]+=tilde_α[i]*Φ_right(β,k+λ*i+offset)
+        end
+    end
+end
+
+# Some UI functions, γ inplace modification 
+#
+function direct_conv!{T}(tilde_α::StridedVector{T},
+                         α_offset::Int,
+			 λ::Int,
+
+                         β::StridedVector{T},
+
+                         γ::StridedVector{T},
+                         Ωγ::UnitRange,
+                         
+                         LeftBoundary::Symbol,
+                         RightBoundary::Symbol)
+
+    direct_conv!(tilde_α,
+                 UnitRange(-α_offset,-α_offset+length(tilde_α)-1),
+                 λ,
+               
+		 β,
+
+                 γ,
+                 Ωγ,
+
+		 LeftBoundary,
+                 RightBoundary)
+end
+
+# Some UI functions, γ returned
+#
+function direct_conv{T}(tilde_α::StridedVector{T},
+                        α_offset::Int,
+			λ::Int,
+
+                        β::StridedVector{T},
+
+                        LeftBoundary::Symbol,
+                        RightBoundary::Symbol)
+
+    γ = Array{T,1}(length(β))
+    
+    direct_conv!(tilde_α,
+                 α_offset,
+                 λ,
+
+                 β,
+
+                 γ,
+		 UnitRange(1,length(γ)),
+
+                 LeftBoundary,
+                 RightBoundary)
+
+    γ
+end
+#+end_src
+
+** In C/C++
+
+for mod
+http://x86.renejeschke.de/html/file_module_x86_id_137.html
+
+optimization: static size for alpha an static lambda -> loop unrolling
+
+#pragma omp simd
+
+...
 
 * Complement: more domains
 
@@ -315,8 +621,16 @@ $$
 }
 $$
 
+* Complement: some readings
 
+** Modulus
 
+- [[https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/divmodnote-letter.pdf][Division and Modulus for Computer Scientists, Daan Leijen]]
+- 
+
+** Convolution
+
+- [[http://arxiv.org/pdf/1509.09308v2.pdf][Fast Algorithms for Convolutional Neural Networks, A. Lavin, S. Gray]]
 
 
 
