@@ -417,7 +417,7 @@ function boundaryExtension_zeroPadding{T}(β::StridedVector{T},
     kmin = tilde_i0
     kmax = length(β) + kmin - 1
     
-    if (k>=1)&&(k<=kmax)
+    if (k>=kmin)&&(k<=kmax)
         β[k]
     else
         T(0)
@@ -585,7 +585,7 @@ end
 # Attention: do not modify me, tangled from directConv.org
 module DirectConv
 
-tilde_i0 = Int(1)
+const tilde_i0 = Int64(1)
 
 <<jl_set>>
 
@@ -666,7 +666,8 @@ $$
 ** Modulus
 
 - [[https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/divmodnote-letter.pdf][Division and Modulus for Computer Scientists, Daan Leijen]]
-- 
+- [[https://www.researchgate.net/publication/234829884_The_Euclidean_definition_of_the_functions_div_and_mod][The Euclidean definition of the functions div and mod, R.T. Boute]]
+- [[http://stackoverflow.com/questions/4102423/efficiently-implementing-floored-euclidean-integer-division][Stackoverflow: Efficiently implementing floored / euclidean integer division]]
 
 ** Convolution
 

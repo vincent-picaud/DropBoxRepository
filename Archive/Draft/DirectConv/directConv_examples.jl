@@ -1,5 +1,6 @@
 workspace()
-include("./DirectConv.jl")
+include("./DirectConv_Optimized.jl")
+#include("./DirectConv.jl")
 
 using DirectConv
 
@@ -41,9 +42,23 @@ function create_directConvMatrix{T}(α::StridedVector{T},
 
     M
 end
+function apply_filter{T}(filter::StridedVector{T},signal::StridedVector{T})
 
+    @assert isodd(length(filter))
+
+    halfWindow = round(Int,(length(filter)-1)/2)
+    
+    padded_signal = 
+	    [signal[1]*ones(halfWindow);
+         signal;
+         signal[end]*ones(halfWindow)]
+
+    filter_cross_signal = conv(filter[end:-1:1], padded_signal)
+
+    return filter_cross_signal[2*halfWindow+1:end-2*halfWindow]
+end
 
 α=rand(41);
-β=rand(10000);
+β=rand(1000000);
 
 @time direct_conv(α,20,1,β,:Constant,:Constant)

@@ -1,16 +1,14 @@
 # Attention: do not modify me, tangled from directConv.org
 module DirectConv
 
-const tilde_i0 = Int(1)
-
-function scale(λ::Int,Ω::UnitRange)
+function scale(λ::Int64,Ω::UnitRange)
     ifelse(λ>0,
            UnitRange(λ*start(Ω),λ*last(Ω)),
            UnitRange(λ*last(Ω),λ*start(Ω)))
 end
 
 function compute_Ωγ1(Ωα::UnitRange,
-                     λ::Int,
+                     λ::Int64,
                      Ωβ::UnitRange)
     
     λΩα = scale(λ,Ωα)
@@ -20,7 +18,7 @@ function compute_Ωγ1(Ωα::UnitRange,
 end
 
 function compute_Ωγ2(Ωα::UnitRange,
-                     λ::Int,
+                     λ::Int64,
                      Ωβ::UnitRange)
     
     λΩα = scale(λ,Ωα)
@@ -44,11 +42,8 @@ function relelativeComplement_right(A::UnitRange,
 end
 
 function boundaryExtension_zeroPadding{T}(β::StridedVector{T},
-                                          k::Int)
-    kmin = tilde_i0
-    kmax = length(β) + kmin - 1
-    
-    if (k>=1)&&(k<=kmax)
+                                          k::Int64)
+    if (k>=1)&&(k<=length(β))
         β[k]
     else
         T(0)
@@ -56,33 +51,24 @@ function boundaryExtension_zeroPadding{T}(β::StridedVector{T},
 end
 
 function boundaryExtension_constant{T}(β::StridedVector{T},
-                                       k::Int)
-    kmin = tilde_i0
-    kmax = length(β) + kmin - 1
-
-    if k<kmin
-        β[kmin]
-    elseif k<=kmax
+                                       k::Int64)
+    if k<1
+        β[1]
+    elseif k<=length(β)
         β[k]
     else
-        β[kmax]
+        β[length(β)]
     end
 end
 
 function boundaryExtension_periodic{T}(β::StridedVector{T},
-                                       k::Int)
-    kmin = tilde_i0
-    kmax = length(β) + kmin - 1
-
-    β[kmin+mod(k-kmin,1+kmax-kmin)]
+                                       k::Int64)
+    β[1+mod(k-1,length(β))]
 end
 
 function boundaryExtension_mirror{T}(β::StridedVector{T},
-                                     k::Int)
-    kmin = tilde_i0
-    kmax = length(β) + kmin - 1
-
-    β[kmax-abs(kmax-kmin-mod(k-kmin,2*(kmax-kmin)))]
+                                     k::Int64)
+    β[length(β)-abs(length(β)-1-mod(k-1,2*(length(β)-1)))]
 end
 
 # For the user interface
@@ -94,7 +80,7 @@ boundaryExtension = Dict(:ZeroPadding=>boundaryExtension_zeroPadding,
 
 function direct_conv!{T}(tilde_α::StridedVector{T},
                          Ωα::UnitRange,
-                         λ::Int,
+                         λ::Int64,
                          β::StridedVector{T},
                          γ::StridedVector{T},
                          Ωγ::UnitRange,
@@ -106,8 +92,8 @@ function direct_conv!{T}(tilde_α::StridedVector{T},
     @assert (start(Ωγ)>=1)&&(last(Ωγ)<=length(γ))
 
     # Initialization
-    Ωβ = UnitRange(1,length(β))
-    tilde_Ωα = 1:length(Ωα)
+    const Ωβ = UnitRange(1,length(β))
+    const tilde_Ωα = 1:length(Ωα)
     
     for k in Ωγ
         γ[k]=0 
@@ -117,32 +103,33 @@ function direct_conv!{T}(tilde_α::StridedVector{T},
     
     # rΩγ1 part: no boundary effect
     #
-    β_offset = λ*(start(Ωα)-tilde_i0)
-    for k in rΩγ1
+    const β_offset = λ*(start(Ωα)-1)
+
+    @simd for k in rΩγ1
         for i in tilde_Ωα
-            γ[k]+=tilde_α[i]*β[k+λ*i+β_offset]
+            @inbounds γ[k]+=tilde_α[i]*β[k+λ*i+β_offset]
         end
     end
 
     # Left part
     #
-    rΩγ1_left = relelativeComplement_left(Ωγ,rΩγ1)
-    Φ_left = boundaryExtension[LeftBoundary]
+    const rΩγ1_left = relelativeComplement_left(Ωγ,rΩγ1)
+    const Φ_left = boundaryExtension[LeftBoundary]
     
     for k in rΩγ1_left
         for i in tilde_Ωα
-            γ[k]+=tilde_α[i]*Φ_left(β,k+λ*i+β_offset)
+            @inbounds γ[k]+=tilde_α[i]*Φ_left(β,k+λ*i+β_offset)
         end
     end
 
     # Right part
     #
-    rΩγ1_right = relelativeComplement_right(Ωγ,rΩγ1)
-    Φ_right = boundaryExtension[RightBoundary]
+    const rΩγ1_right = relelativeComplement_right(Ωγ,rΩγ1)
+    const Φ_right = boundaryExtension[RightBoundary]
     
-    for k in rΩγ1_right
+    @simd for k in rΩγ1_right
         for i in tilde_Ωα
-            γ[k]+=tilde_α[i]*Φ_right(β,k+λ*i+β_offset)
+            @inbounds γ[k]+=tilde_α[i]*Φ_right(β,k+λ*i+β_offset)
         end
     end
 end
@@ -150,8 +137,8 @@ end
 # Some UI functions, γ inplace modification 
 #
 function direct_conv!{T}(tilde_α::StridedVector{T},
-                         α_offset::Int,
-			 λ::Int,
+                         α_offset::Int64,
+			 λ::Int64,
 
                          β::StridedVector{T},
 
@@ -178,8 +165,8 @@ function direct_conv!{T}(tilde_α::StridedVector{T},
 end
 
 function direct_conv{T}(tilde_α::StridedVector{T},
-                        α_offset::Int,
-			λ::Int,
+                        α_offset::Int64,
+			λ::Int64,
 
                         β::StridedVector{T},
 
