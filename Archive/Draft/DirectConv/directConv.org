@@ -205,7 +205,7 @@ This function must fulfills the $\tilde{\beta}[j+T]=\tilde{\beta}[j]$ relation.
 
 We can do that by considering $\tilde{\beta}=\beta \circ \phi^P_N(j)$ where
 $$
-\phi^P_N(j)=\bmod_F(j,N)
+\phi^P_N(j)=\bmod_F(j,N+1)
 $$
 and $\bmod_F$ is the modulus function associated to a [[https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/divmodnote-letter.pdf][floored division]].
 
@@ -223,11 +223,11 @@ $$ \boxed{\tilde{\beta} = \beta \circ \phi^P_{j_{\min},j_{\max}}} $$
 where
 
 $$
-\phi^P_{j_{\min},j_{\max}} = \tau^{(-1)}_{j_{\min}} \circ  \phi^P_{j_{\max}- j_{\min}} \circ \tau_{j_{\min}}
+\phi^P_{j_{\min},j_{\max}} = \tau^{(-1)}_{j_{\min}} \circ  \phi^P_{j_{\max}- j_{\min}+1} \circ \tau_{j_{\min}}
 $$
 
 $$
-\boxed{\phi^P_{j_{\min},j_{\max}} = j_{\min} + \bmod_F(j-j_{\min},j_{\max}- j_{\min})}
+\boxed{\phi^P_{j_{\min},j_{\max}} = j_{\min} + \bmod_F(j-j_{\min},j_{\max}- j_{\min}+1)}
 $$
 
 
@@ -244,8 +244,9 @@ The resulting function $\tilde{\beta}=\beta\circ \phi^M_N$  fulfills the
 $\tilde{\beta}[N-j]=\tilde{\beta}[N+j]$ relation for $j\in \llbracket 0, N
 \rrbracket$.
 
-To get a "global" definition we then periodize it on $\llbracket 0, 2N \rrbracket$
-using $\phi^P_{2N}$.
+To get a "global" definition we then periodize it on $\llbracket 0,
+2N-1 \rrbracket$ using $\phi^P_{2N-1}$ (attention $2N-1$ and not $2N$,
+otherwise the component $0$ is duplicated!).
 
 For an arbitrary domain $\llbracket j_{\min}, j_{\max} \rrbracket$ we use index translation as for the periodic case.
 Putting everything together we get:
@@ -255,7 +256,7 @@ $$ \boxed{\tilde{\beta} = \beta \circ \phi^M_{j_{\min},j_{\max}}} $$
 where
 
 $$
-\phi^M_{j_{\min},j_{\max}} =  \tau^{(-1)}_{j_{\min}} \circ \phi^M_{j_{\max}- j_{\min}} \circ  \phi^P_{2(j_{\max}- j_{\min})} \circ \tau_{j_{\min}}
+\phi^M_{j_{\min},j_{\max}} =  \tau^{(-1)}_{j_{\min}} \circ \phi^M_{j_{\max}- j_{\min}} \circ  \phi^P_{2(j_{\max}- j_{\min})-1} \circ \tau_{j_{\min}}
 $$
 
 $$
@@ -439,7 +440,7 @@ function boundaryExtension_periodic{T}(β::StridedVector{T},
     kmin = 1
     kmax = length(β)
 
-    β[kmin+mod(k-kmin,kmax-kmin)]
+    β[kmin+mod(k-kmin,1+kmax-kmin)]
 end
 
 function boundaryExtension_mirror{T}(β::StridedVector{T},

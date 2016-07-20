@@ -9,8 +9,9 @@ using DirectConv
 γ=zeros(10)
 Ωγ=UnitRange(1,10)
 
-#direct_conv!(α,2,1,β,γ,Ωγ,:Mirror,:Periodic)
-direct_conv!(α,2,1,β,γ,Ωγ,:Periodic,:Mirror)
+direct_conv!(α,20,1,β,γ,Ωγ,:Periodic,:Periodic)
+γ
+#direct_conv!(α,2,1,β,γ,Ωγ,:Periodic,:Mirror)
 
 #direct_conv(α,2,1,β,:ZeroPadding,:ZeroPadding)
 
