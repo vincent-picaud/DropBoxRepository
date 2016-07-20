@@ -41,3 +41,9 @@ function create_directConvMatrix{T}(α::StridedVector{T},
 
     M
 end
+
+
+α=rand(41);
+β=rand(10000);
+
+@time direct_conv(α,20,1,β,:Constant,:Constant)
