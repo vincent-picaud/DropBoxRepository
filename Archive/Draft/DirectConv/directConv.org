@@ -413,9 +413,11 @@ function boundaryExtension_zeroPadding{T}(β::StridedVector{T},
     kmin = 1
     kmax = length(β)
     
-    ifelse((k>=1)&&(k<=kmax),
-           β[k],
-           T(0))
+    if (k>=1)&&(k<=kmax)
+        β[k]
+	else
+        T(0)
+	end
 end
 
 function boundaryExtension_constant{T}(β::StridedVector{T},
