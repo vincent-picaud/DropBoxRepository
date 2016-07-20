@@ -416,8 +416,8 @@ toward zero division version).
 #+begin_src julia 
 function boundaryExtension_zeroPadding{T}(β::StridedVector{T},
                                           k::Int)
-    kmin = 1
-    kmax = length(β)
+    kmin = tilde_i0
+    kmax = length(β) + kmin - 1
     
     if (k>=1)&&(k<=kmax)
         β[k]
@@ -428,8 +428,8 @@ end
 
 function boundaryExtension_constant{T}(β::StridedVector{T},
                                        k::Int)
-    kmin = 1
-    kmax = length(β)
+    kmin = tilde_i0
+    kmax = length(β) + kmin - 1
 
     if k<kmin
         β[kmin]
@@ -442,16 +442,16 @@ end
 
 function boundaryExtension_periodic{T}(β::StridedVector{T},
                                        k::Int)
-    kmin = 1
-    kmax = length(β)
+    kmin = tilde_i0
+    kmax = length(β) + kmin - 1
 
     β[kmin+mod(k-kmin,1+kmax-kmin)]
 end
 
 function boundaryExtension_mirror{T}(β::StridedVector{T},
                                      k::Int)
-    kmin = 1
-    kmax = length(β)
+    kmin = tilde_i0
+    kmax = length(β) + kmin - 1
 
     β[kmax-abs(kmax-kmin-mod(k-kmin,2*(kmax-kmin)))]
 end
@@ -489,13 +489,13 @@ function direct_conv!{T}(tilde_α::StridedVector{T},
     
     for k in Ωγ
         γ[k]=0 
-	end
+    end
 
     rΩγ1=intersect(Ωγ,compute_Ωγ1(Ωα,λ,Ωβ))
     
     # rΩγ1 part: no boundary effect
     #
-    β_offset = λ*(start(Ωα)-1)
+    β_offset = λ*(start(Ωα)-tilde_i0)
     for k in rΩγ1
         for i in tilde_Ωα
             γ[k]+=tilde_α[i]*β[k+λ*i+β_offset]
@@ -529,7 +529,7 @@ end
 #
 function direct_conv!{T}(tilde_α::StridedVector{T},
                          α_offset::Int,
-			             λ::Int,
+			 λ::Int,
 
                          β::StridedVector{T},
 
@@ -540,23 +540,21 @@ function direct_conv!{T}(tilde_α::StridedVector{T},
                          RightBoundary::Symbol)
 
     direct_conv!(tilde_α,
-                 UnitRange(-α_offset,-α_offset+length(tilde_α)-1),
+                 UnitRange(-λ*α_offset,length(tilde_α)-λ*α_offset-1),
                  λ,
                  
-		         β,
+		 β,
 
                  γ,
                  Ωγ,
 
-		         LeftBoundary,
+		 LeftBoundary,
                  RightBoundary)
 end
 
-# Some UI functions, γ returned
-#
 function direct_conv{T}(tilde_α::StridedVector{T},
                         α_offset::Int,
-			            λ::Int,
+			λ::Int,
 
                         β::StridedVector{T},
 
@@ -572,7 +570,7 @@ function direct_conv{T}(tilde_α::StridedVector{T},
                  β,
 
                  γ,
-		         UnitRange(1,length(γ)),
+		 UnitRange(1,length(γ)),
 
                  LeftBoundary,
                  RightBoundary)
@@ -585,6 +583,8 @@ end
 #+begin_src julia :tangle yes :tangle DirectConv.jl :noweb yes :exports none
 # Attention: do not modify me, tangled from directConv.org
 module DirectConv
+
+tilde_i0 = Int(1)
 
 <<jl_set>>
 
@@ -676,4 +676,5 @@ $$
 # latex-test.png http://pixorblog.files.wordpress.com/2016/07/latex-test6.png
 
 
-# a_offset.png http://pixorblog.files.wordpress.com/2016/07/a_offset1.png
+
+# a_offset.png http://pixorblog.files.wordpress.com/2016/07/a_offset2.png
