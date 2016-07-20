@@ -223,7 +223,7 @@ $$ \boxed{\tilde{\beta} = \beta \circ \phi^P_{j_{\min},j_{\max}}} $$
 where
 
 $$
-\phi^P_{j_{\min},j_{\max}} = \tau^{(-1)}_{j_{\min}} \circ  \phi^P_{j_{\max}- j_{\min}+1} \circ \tau_{j_{\min}}
+\phi^P_{j_{\min},j_{\max}} = \tau^{(-1)}_{j_{\min}} \circ  \phi^P_{j_{\max}- j_{\min}} \circ \tau_{j_{\min}}
 $$
 
 $$
@@ -269,7 +269,7 @@ $$
 
 To use the algorithm with boundary extensions, you only have to
 define: $$ \tilde{\beta}=\Phi(\beta,k+\lambda
-i)=\beta[\phi^X[k+\lambda i]] $$ where $\phi$ is the boundary
+i)=\beta[\phi^X[k+\lambda i]] $$ where $X$ is the boundary
 extension you have chosen (periodic, constant...). You do not have to
 take care of any validity condition, these formula are general.
 
@@ -284,8 +284,8 @@ presentation.
 *** Index translation / domain definition
 
 There is however one last thing we have to explain. In languages like
-Julia, C... we are manipulating arrays that all have a common starting
-index: $1$ in Julia, Fortran..., $0$ in C, C++...
+Julia, C... we are manipulating arrays having a common starting
+index: $1$ in Julia, Fortran... or $0$ in C, C++...
 
 For this reason we do not manipulate $\alpha$ on $\Omega^\alpha$ but
 an another translated array $\tilde{\alpha}$ defined on $\llbracket 1,
