@@ -341,20 +341,18 @@ For the driver subroutine we do not directly provide this interval because its l
 Instead we provide an $\alpha\_\text{offset}$ offset. $\Omega^\alpha$ is deduced from:
 
 $$
-\Omega^\alpha = \llbracket -\alpha\_\text{offset}-\tilde{i}_0, -\alpha\_\text{offset}-\tilde{i}_0 + \text{length}(\tilde{\alpha}) -1 \rrbracket
+\Omega^\alpha = \llbracket -\alpha\_\text{offset}, -\alpha\_\text{offset} + \text{length}(\tilde{\alpha}) -1 \rrbracket
 $$
 
-With $\alpha\_\text{offset}=0$ you are in the "usual situation":
+Note: this definition does not depend on $\tilde{i}_0$.
+
+With $\alpha\_\text{offset}=0$ you are in the "usual situation". If
+you have a window size of $2n+1$, taking $\alpha\_\text{offset}=n$
+take the middle of the window. Here below the graphical representation
+of an arbitrary case: a filter if size $4$, with
+$\alpha\_\text{offset}=2$ and $\lambda=3$.
 
 [[file:a_offset.png]]
-
-and this does not depend on $\tilde{i}_0$ (filter definition does not depend on the language!).
-
-
-choices are possible, for instance if you have a smoothing window of
-size $2w+1$, it is generally a good idea to use
-$\alpha\_\text{offset}=w$ (middle of the window) to avoid signal
-shift.
 
 ** Julia
 
@@ -421,9 +419,9 @@ function boundaryExtension_zeroPadding{T}(β::StridedVector{T},
     
     if (k>=1)&&(k<=kmax)
         β[k]
-	else
+    else
         T(0)
-	end
+    end
 end
 
 function boundaryExtension_constant{T}(β::StridedVector{T},
@@ -460,8 +458,8 @@ end
 #
 boundaryExtension = Dict(:ZeroPadding=>boundaryExtension_zeroPadding,
                          :Constant=>boundaryExtension_constant,
-						 :Periodic=>boundaryExtension_periodic,
-						 :Mirror=>boundaryExtension_mirror)
+			 :Periodic=>boundaryExtension_periodic,
+			 :Mirror=>boundaryExtension_mirror)
 #+end_src
 
 *** Main subroutines
@@ -539,8 +537,11 @@ function direct_conv!{T}(tilde_α::StridedVector{T},
                          LeftBoundary::Symbol,
                          RightBoundary::Symbol)
 
+    Ωα = UnitRange(-α_offset,
+                   length(tilde_α)-α_offset-1)
+    
     direct_conv!(tilde_α,
-                 UnitRange(-λ*α_offset,length(tilde_α)-λ*α_offset-1),
+                 Ωα,
                  λ,
                  
 		 β,
@@ -677,4 +678,5 @@ $$
 
 
 
-# a_offset.png http://pixorblog.files.wordpress.com/2016/07/a_offset2.png
+
+# a_offset.png http://pixorblog.files.wordpress.com/2016/07/a_offset3.png
