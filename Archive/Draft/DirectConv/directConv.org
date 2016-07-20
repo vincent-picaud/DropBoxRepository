@@ -312,16 +312,14 @@ i\in\Omega^\alpha \Leftrightarrow \tilde{i}\in\llbracket \tilde{i}_0,u(\Omega^\a
 $$
 and
 $$
-k+\lambda i = k+ \lambda \tilde{i} + \lambda (l(\Omega^\alpha) - \tilde{i}_0)
+k+\lambda i = k+ \lambda \tilde{i} + \underbrace{\lambda (l(\Omega^\alpha) - \tilde{i}_0)}_{\beta\_\text{offset}}
 $$
 
 Thus, Eq (1) becomes:
 
-$$
-\boxed{
+$$ \boxed{
 \gamma[k]=\sum\limits_{\tilde{i}=\tilde{i}_0}^{u(\Omega^\alpha)-l(\Omega^\alpha)+\tilde{i}_0}\tilde{\alpha}[\tilde{i}]\beta[k+
-\lambda \tilde{i} + \underbrace{\lambda (l(\Omega^\alpha) -
-\tilde{i}_0)}_{\beta\_\text{offset}}]} $$
+\lambda \tilde{i} + \lambda (l(\Omega^\alpha) - \tilde{i}_0)]} $$
 
 The $2$ other arrays are less problematic:
  - For $\beta$ array, which is our input array, we implicitly use $\Omega^\beta = \llbracket \tilde{i}_0, \tilde{i}_0 + \text{length}(\beta) - 1 \rrbracket$.
@@ -358,7 +356,8 @@ shift.
 
 We start by defining the basic operations on sets:
 
-#+begin_src julia :name jl_set.jl
+#+name: jl_set
+#+begin_src julia 
 function scale(λ::Int,Ω::UnitRange)
     ifelse(λ>0,
            UnitRange(λ*start(Ω),λ*last(Ω)),
@@ -407,7 +406,8 @@ had to check that the Julia *mod(x,y)* function is the floored division
 version (by opposition to the *rem(x,y)* function which is the rounded
 toward zero division version).
 
-#+begin_src julia :name jl_boundary
+#+name: jl_boundary
+#+begin_src julia 
 function boundaryExtension_zeroPadding{T}(β::StridedVector{T},
                                           k::Int)
     kmin = 1
@@ -437,7 +437,7 @@ function boundaryExtension_periodic{T}(β::StridedVector{T},
     kmin = 1
     kmax = length(β)
 
-    kmin+mod(k-kmin,kmax-kmin)
+    β[kmin+mod(k-kmin,kmax-kmin)]
 end
 
 function boundaryExtension_mirror{T}(β::StridedVector{T},
@@ -445,22 +445,23 @@ function boundaryExtension_mirror{T}(β::StridedVector{T},
     kmin = 1
     kmax = length(β)
 
-    kmax-abs(kmax-kmin-mod(k-kmin,2*(kmax-kmin)))
+    β[kmax-abs(kmax-kmin-mod(k-kmin,2*(kmax-kmin)))]
 end
 
 # For the user interface
 #
 boundaryExtension = Dict(:ZeroPadding=>boundaryExtension_zeroPadding,
                          :Constant=>boundaryExtension_constant,
-			 :Periodic=>boundaryExtension_periodic
-			 :Mirror=>boundaryExtension_mirror)
+						 :Periodic=>boundaryExtension_periodic,
+						 :Mirror=>boundaryExtension_mirror)
 #+end_src
 
 *** Main subroutines
 
 Finally we define the main subroutine. Its arguments have been defined in the *preamble* part.
 
-#+begin_src julia :name jl_boundary
+#+name: jl_main
+#+begin_src julia 
 function direct_conv!{T}(tilde_α::StridedVector{T},
                          Ωα::UnitRange,
                          λ::Int,
@@ -470,19 +471,20 @@ function direct_conv!{T}(tilde_α::StridedVector{T},
                          LeftBoundary::Symbol,
                          RightBoundary::Symbol)
     # Sanity check
-    assert λ!=0
-    assert length(tilde_α)==length(Ωα)
-    assert (start(Ωγ)>=1)&&(last(Ωγ)<=length(γ))
+    @assert λ!=0
+    @assert length(tilde_α)==length(Ωα)
+    @assert (start(Ωγ)>=1)&&(last(Ωγ)<=length(γ))
 
     # Initialization
     Ωβ = UnitRange(1,length(β))
     tilde_Ωα = 1:length(Ωα)
     
     for k in Ωγ
-      γ[k]=0 
+        γ[k]=0 
+	end
 
     rΩγ1=intersect(Ωγ,compute_Ωγ1(Ωα,λ,Ωβ))
-  
+    
     # rΩγ1 part: no boundary effect
     #
     offset = λ*(start(Ωα)-1)
@@ -519,7 +521,7 @@ end
 #
 function direct_conv!{T}(tilde_α::StridedVector{T},
                          α_offset::Int,
-			 λ::Int,
+			             λ::Int,
 
                          β::StridedVector{T},
 
@@ -532,13 +534,13 @@ function direct_conv!{T}(tilde_α::StridedVector{T},
     direct_conv!(tilde_α,
                  UnitRange(-α_offset,-α_offset+length(tilde_α)-1),
                  λ,
-               
-		 β,
+                 
+		         β,
 
                  γ,
                  Ωγ,
 
-		 LeftBoundary,
+		         LeftBoundary,
                  RightBoundary)
 end
 
@@ -546,7 +548,7 @@ end
 #
 function direct_conv{T}(tilde_α::StridedVector{T},
                         α_offset::Int,
-			λ::Int,
+			            λ::Int,
 
                         β::StridedVector{T},
 
@@ -562,12 +564,29 @@ function direct_conv{T}(tilde_α::StridedVector{T},
                  β,
 
                  γ,
-		 UnitRange(1,length(γ)),
+		         UnitRange(1,length(γ)),
 
                  LeftBoundary,
                  RightBoundary)
 
     γ
+end
+#+end_src
+
+
+#+begin_src julia :tangle yes :tangle DirectConv.jl :noweb yes :exports none
+# Attention: do not modify me, tangled from directConv.org
+module DirectConv
+
+<<jl_set>>
+
+<<jl_boundary>>
+
+<<jl_main>>
+
+export direct_conv
+export direct_conv!
+
 end
 #+end_src
 
@@ -581,6 +600,18 @@ optimization: static size for alpha an static lambda -> loop unrolling
 #pragma omp simd
 
 ...
+
+
+* Usages examples
+
+** Basic usages
+
+# #+begin_src julia :results output
+# push!(LOAD_PATH, "/home/picaud/GitHub/DropBoxRepository/Archive/Draft/DirectConv/")
+# using DirectConv
+# #+end_src
+
+#+RESULTS:
 
 * Complement: more domains
 
@@ -634,7 +665,4 @@ $$
 
 
 
-
-# latex-test.png http://pixorblog.files.wordpress.com/2016/07/latex-test5.png
-# P_func.png http://pixorblog.files.wordpress.com/2016/07/p_func1.png
-# T_func.png http://pixorblog.files.wordpress.com/2016/07/t_func1.png
+# latex-test.png http://pixorblog.files.wordpress.com/2016/07/latex-test6.png
