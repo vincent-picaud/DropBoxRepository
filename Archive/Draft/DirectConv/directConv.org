@@ -341,11 +341,16 @@ For the driver subroutine we do not directly provide this interval because its l
 Instead we provide an $\alpha\_\text{offset}$ offset. $\Omega^\alpha$ is deduced from:
 
 $$
-\Omega^\alpha = \llbracket -\alpha\_\text{offset}, -\alpha\_\text{offset} + \text{length}(\tilde{\alpha}) -1 \rrbracket
+\Omega^\alpha = \llbracket -\alpha\_\text{offset}-\tilde{i}_0, -\alpha\_\text{offset}-\tilde{i}_0 + \text{length}(\tilde{\alpha}) -1 \rrbracket
 $$
 
-This $\alpha\_\text{offset}$ does not depend on $\tilde{i}_0$. With
-$\alpha\_\text{offset}=0$ you are in the "usual situation", other
+With $\alpha\_\text{offset}=0$ you are in the "usual situation":
+
+[[file:a_offset.png]]
+
+and this does not depend on $\tilde{i}_0$ (filter definition does not depend on the language!).
+
+
 choices are possible, for instance if you have a smoothing window of
 size $2w+1$, it is generally a good idea to use
 $\alpha\_\text{offset}=w$ (middle of the window) to avoid signal
@@ -490,10 +495,10 @@ function direct_conv!{T}(tilde_α::StridedVector{T},
     
     # rΩγ1 part: no boundary effect
     #
-    offset = λ*(start(Ωα)-1)
+    β_offset = λ*(start(Ωα)-1)
     for k in rΩγ1
         for i in tilde_Ωα
-            γ[k]+=tilde_α[i]*β[k+λ*i+offset]
+            γ[k]+=tilde_α[i]*β[k+λ*i+β_offset]
         end
     end
 
@@ -504,7 +509,7 @@ function direct_conv!{T}(tilde_α::StridedVector{T},
     
     for k in rΩγ1_left
         for i in tilde_Ωα
-            γ[k]+=tilde_α[i]*Φ_left(β,k+λ*i+offset)
+            γ[k]+=tilde_α[i]*Φ_left(β,k+λ*i+β_offset)
         end
     end
 
@@ -515,7 +520,7 @@ function direct_conv!{T}(tilde_α::StridedVector{T},
     
     for k in rΩγ1_right
         for i in tilde_Ωα
-            γ[k]+=tilde_α[i]*Φ_right(β,k+λ*i+offset)
+            γ[k]+=tilde_α[i]*Φ_right(β,k+λ*i+β_offset)
         end
     end
 end
@@ -669,3 +674,6 @@ $$
 
 
 # latex-test.png http://pixorblog.files.wordpress.com/2016/07/latex-test6.png
+
+
+# a_offset.png http://pixorblog.files.wordpress.com/2016/07/a_offset1.png
