@@ -841,7 +841,7 @@ Conclusion: for *small filters*, use a *direct* approach!
 - decimated and undecimated wavelet transforms,
 - ... 
 
-I will certainly write some posts on this kind of stuff.
+I will certainly write some posts on these stuff.
 
 Some extra reading:
 
