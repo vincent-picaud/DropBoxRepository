@@ -120,9 +120,9 @@ function direct_conv!{T}(tilde_α::StridedVector{T},
     # rΩγ1 part: no boundary effect
     #
     β_offset = λ*(start(Ωα)-tilde_i0)
-    for k in rΩγ1
+    @simd for k in rΩγ1
         for i in tilde_Ωα
-            γ[k]+=tilde_α[i]*β[k+λ*i+β_offset]
+        @inbounds γ[k]+=tilde_α[i]*β[k+λ*i+β_offset]
         end
     end
 
