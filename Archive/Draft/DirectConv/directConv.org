@@ -356,7 +356,7 @@ with $\alpha\_\text{offset}=2$ and $\lambda=3$.
 [[file:a_offset.png]]
 
 ** Julia
-
+   
 *** Auxiliary subroutines
 
 We start by defining the basic operations on sets:
@@ -468,8 +468,11 @@ boundaryExtension =
 
 *** Main subroutine
 
-Finally we define the main subroutine. Its arguments have been defined in the *preamble* part.
-
+Finally we define the main subroutine. Its arguments have been defined
+in the *preamble* part.  I just added one @simd & @inbounds because
+this has a significant impact concerning perfomance (see end of this
+post).
+ 
 #+name: jl_main
 #+begin_src julia 
 function direct_conv!{T}(tilde_α::StridedVector{T},
@@ -500,7 +503,7 @@ function direct_conv!{T}(tilde_α::StridedVector{T},
     β_offset = λ*(start(Ωα)-tilde_i0)
     @simd for k in rΩγ1
         for i in tilde_Ωα
-        @inbounds γ[k]+=tilde_α[i]*β[k+λ*i+β_offset]
+            @inbounds γ[k]+=tilde_α[i]*β[k+λ*i+β_offset]
         end
     end
 
@@ -522,7 +525,7 @@ function direct_conv!{T}(tilde_α::StridedVector{T},
     
     for k in rΩγ1_right
         for i in tilde_Ωα
-            γ[k]+=tilde_α[i]*Φ_right(β,k+λ*i+β_offset)
+	    γ[k]+=tilde_α[i]*Φ_right(β,k+λ*i+β_offset)
         end
     end
 end
@@ -661,7 +664,7 @@ only for *ZeroPadding* and *Periodic*
 
 # :results output
 
-#+begin_src julia :exports code :results output
+#+begin_src julia :exports code :results output :eval no-export
 push!(LOAD_PATH,"./")
 using DirectConv
 
@@ -714,7 +717,7 @@ direct_conv!(α,3,2,β,Γ,Ω2,:Mirror,:Periodic) # compute on Ω2
 In a previous post I gave a short derivation of the [[https://pixorblog.wordpress.com/2016/07/13/savitzky-golay-filters-julia/][Savitzky-Golay filters]]. I used a *FFT* based convolution to apply the filters.
 It is interesting to compare the performance of the presented *direct* approach vs the *FFT* one.
 
-#+begin_src julia :exports code 
+#+begin_src julia :exports code :eval no-export
 push!(LOAD_PATH,"./")
 using DirectConv
 
@@ -746,8 +749,8 @@ direct_v = direct_conv(α,halfWidth,1,β,:Constant,:Constant)
 
 # Now we can create a (very) rough benchmark
 M=Array(Float64,0,3)
-β=rand(2016000);
-for halfWidth in 1:1:20
+β=rand(1000000);
+for halfWidth in 1:2:40
     α=rand(2*halfWidth+1);
 
     fft_t0 = time()
@@ -767,40 +770,73 @@ M
 
 #+tblname: data-table
 #+RESULTS:
+|  3 |  565.1090145111084 |  12.47406005859375 |
+|  7 | 226.01985931396484 | 19.144058227539062 |
+| 11 |   270.967960357666 |  22.28403091430664 |
+| 15 | 192.70682334899902 | 32.682180404663086 |
+| 19 | 274.54614639282227 |  41.28599166870117 |
+| 23 | 189.86105918884277 | 51.271915435791016 |
+| 27 | 274.04308319091797 | 58.444976806640625 |
+| 31 | 212.91804313659668 |  67.17991828918457 |
+| 35 | 280.87687492370605 |   76.9650936126709 |
+| 39 | 197.32189178466797 |  82.19695091247559 |
+| 43 | 272.19200134277344 |  90.55018424987793 |
+| 47 | 203.48215103149414 |  98.75798225402832 |
+| 51 |  272.5789546966553 | 104.50100898742676 |
+| 55 | 197.86310195922852 | 110.82601547241211 |
+| 59 |  309.6179962158203 | 115.02599716186523 |
+| 63 |  268.2609558105469 |  121.5970516204834 |
+| 67 | 271.43192291259766 |  217.2701358795166 |
+| 71 |  208.1470489501953 | 222.30005264282227 |
+| 75 | 269.21796798706055 |  246.0920810699463 |
+| 79 | 199.61810111999512 |  249.5279312133789 |
 
 
-#+BEGIN_SRC gnuplot :var data=data-table :exports results :file toto.png
+#+BEGIN_SRC gnuplot :var data=data-table :exports results :file cpu_time.png
 reset
-
+set title "CPU time msec"
 plot data u 1:2 with lines title "FFT", \
 data u 1:3 with lines title "Direct"
 #+END_SRC
 
 #+RESULTS:
-[[file:toto.png]]
+[[file:cpu_time.png]]
 
-* discussion
+#+BEGIN_SRC gnuplot :var data=data-table :exports results :file ratio_cpu_time.png
+reset
+set title "Ratio (CPU time FFT/CPU time Direct)"
+plot data u 1:($2/$3) with lines
+#+END_SRC
 
-I m a beginner in Julia language and I would like to know the reason
-why there are so many dynamic memory allocations? I guess I m doing
-something wrong somewhere... How can we detect & control them?  In
-C/C++, I'm at home, you can safely write down the algorithm without (or very few)
-memory allocation and you have a lot of profiling tools. I do not know if
-such tools exist for Julia. If I have time I will maybe try to
-benchmark two basic implementations, a Julia one vs a C/C++ one.
+#+RESULTS:
+[[file:ratio_cpu_time.png]]
 
-I would be curious to see the difference between a basic
-implementation and an optimized one in Julia. Just to see how
-optimization can obfuscate (or not) the initial code and the
-performance gain. In C++ you generally have a lot of boiler-plate code
-(meta-programming...) but you control everything.
+We see that for small filters *direct* method can easily be *10* time faster than the *FFT* approach!
 
-(do not misread me: I like how Julia code is clean and easy to
-write/read. I'm not telling that one language is better than another,
-I am just saying that they are different and have their own pros and
-cons.)
+Conclusion: for *small filters*, use a *direct* approach!
 
-The basic Eq. (1) is common tool that can be used for:
+* Discussion
+
+** Optimization/performance
+
+  If I have time I will try to benchmark two basic
+  implementations, a Julia one vs a C/C++ one. I m a beginner in Julia
+  language, with C/C++, I'm more at home.
+
+  I would be curious to see the difference between a basic
+  implementation and an optimized one in Julia. Just to see how
+  optimization can obfuscate (or not) the initial code and the
+  performance gain. In C++ you generally have a lot of boiler-plate code
+  (meta-programming...).
+
+  (do not misread me: I like how Julia code is clean and easy to
+  write/read. I'm not telling that one language is better than another,
+  I am just saying that they are different and have their own pros and
+  cons.)
+
+** Applications
+
+  The basic Eq. (1) is common tool that can be used for:
 - deconvolution procedures, 
 - decimated and undecimated wavelet transforms,
 - ... 
@@ -812,6 +848,9 @@ Some extra reading:
 - The FFT way: [[http://cdn.intechopen.com/pdfs/41657.pdf][Algorithms for Efficient Computation of Convolution, K. Pavel]]
 - The Winograd’s minimal filtering algorithms way: [[http://arxiv.org/pdf/1509.09308v2.pdf][Fast Algorithms for Convolutional Neural Networks, A. Lavin, S. Gray]]
 - The OpenCL/GUPU way: [[http://www.cmsoft.com.br/opencl-tutorial/case-study-high-performance-convolution-using-opencl-__local-memory/][Case study: High performance convolution using OpenCL __local memory]]
+
+** Code
+The code is on 
 
 * Complement: more domains
 
@@ -856,3 +895,6 @@ $$
 # a_offset.png http://pixorblog.files.wordpress.com/2016/07/a_offset3.png
 
 # toto.png http://pixorblog.files.wordpress.com/2016/07/toto.png
+
+# cpu_time.png http://pixorblog.files.wordpress.com/2016/07/cpu_time.png
+# ratio_cpu_time.png http://pixorblog.files.wordpress.com/2016/07/ratio_cpu_time.png
