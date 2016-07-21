@@ -672,7 +672,7 @@ $$
 ** Convolution
 
 - [[http://arxiv.org/pdf/1509.09308v2.pdf][Fast Algorithms for Convolutional Neural Networks, A. Lavin, S. Gray]]
-
+- [[http://cdn.intechopen.com/pdfs/41657.pdf][Algorithms for Efficient Computation of Convolution, K. Pavel]]
 
 
 # latex-test.png http://pixorblog.files.wordpress.com/2016/07/latex-test6.png
