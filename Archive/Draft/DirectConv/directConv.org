@@ -638,18 +638,27 @@ You can read:
 
 ** Basic usages
 
+# :results output
+
 #+begin_src julia :results output
 push!(LOAD_PATH,"./")
 using DirectConv
 
 α=rand(4);
-β=rand(100);
+β=rand(10);
 
-@time direct_conv(α,20,1,β,:Constant,:Constant);
+# Check commutativity 
+# -> λ = -1 (convolution) and restricted to ZeroParring (asymmetric role of α and β)
+#
+v1=zeros(20)
+direct_conv!(α,0,-1,β,v1,UnitRange(1,20),:ZeroPadding,:ZeroPadding)
+v2=zeros(20)
+direct_conv!(β,0,-1,α,v2,UnitRange(1,20),:ZeroPadding,:ZeroPadding)
+
+@assert (norm(v1-v2)<eps())
 #+end_src
 
 #+RESULTS:
-:   0.187260 seconds (29.98 k allocations: 1.254 MB)
 
 * Discussion
 
