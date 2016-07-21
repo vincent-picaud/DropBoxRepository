@@ -1,5 +1,5 @@
 # Attention: do not modify me, tangled from directConv.org
-# Please keep ref: 
+# Please keep ref: https://pixorblog.wordpress.com/
 module DirectConv
 
 function scale(λ::Int64,Ω::UnitRange)

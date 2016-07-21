@@ -592,7 +592,7 @@ end
 
 #+begin_src julia :tangle yes :tangle DirectConv.jl :noweb yes :exports none
 # Attention: do not modify me, tangled from directConv.org
-# Please keep ref: 
+# Please keep ref: https://pixorblog.wordpress.com/
 module DirectConv
 
 <<jl_set>>
@@ -850,7 +850,7 @@ Some extra reading:
 - The OpenCL/GUPU way: [[http://www.cmsoft.com.br/opencl-tutorial/case-study-high-performance-convolution-using-opencl-__local-memory/][Case study: High performance convolution using OpenCL __local memory]]
 
 ** Code
-The code is on 
+The code is on [[https://github.com/vincent-picaud/DropBoxRepository/tree/master/Blog/DirectConv][github.]]
 
 * Complement: more domains
 
