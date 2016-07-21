@@ -61,4 +61,4 @@ end
 α=rand(41);
 β=rand(1000000);
 
-@time direct_conv(α,20,1,β,:Constant,:Constant)
+@time direct_conv(α,20,1,β,:Constant,:Constant);

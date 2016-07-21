@@ -27,7 +27,7 @@ From time to time we will use the notation $\gamma=\alpha\bigodot\limits_\lambda
 An arbitrary stride $\lambda$ has been introduced to define:
   - $\lambda=-1$ convolution
   - $\lambda=+1$ cross-correlation 
-  - $\lambda=\pm 2^n$ the [[https://en.wikipedia.org/wiki/Stationary_wavelet_transform][stationary wavelet transform]] (the so called [[http://ieeexplore.ieee.org/xpls/abs_all.jsp?arnumber=157290]["à trous" algorithm]])
+  - $\lambda=\pm 2^n$ the stationary wavelet transform (the so called [[http://ieeexplore.ieee.org/xpls/abs_all.jsp?arnumber=157290]["à trous" algorithm]])
 
 Also note that with proper boundary extension (*periodic* and *zero padding* essentially), changing the sign of
 $\lambda$ gives the *adjoint* operator:
@@ -38,14 +38,12 @@ $$
 
 ** Disclaimer 
 
-Maybe the following is overwhelmingly detailed for a simple task like Eq. (1), but on my side I have
-found interesting to have written this once for all. 
-
-Maybe it can be useful for someone else.
+Maybe the following is overwhelmingly detailed for a simple task like Eq. (1), but I have
+found some interests in writing this once for all. Maybe it can be useful for someone else.
 
 * Some notations
 
-We note $\Omega$ the domain of our vectors, for instance
+We note $\Omega$ our vector domain (or support), for instance
 
 \begin{equation}
 \Omega^\alpha =\llbracket i_{\min} ,i_{\max} \rrbracket
@@ -101,7 +99,7 @@ computes $\gamma[k]$ for $k\in\Omega^\gamma$.
   \Omega^\gamma_1=\{k\in\mathbb{Z}\ /\ \forall i \in \Omega^\alpha \Rightarrow k+\lambda i \in \Omega^\beta \}
   $$
 
-  I write all the details because it is error prone
+  Let's write the details,
   $$
   (\forall i \in \Omega^\alpha  \Rightarrow k+\lambda i \in \Omega^\beta)\Leftrightarrow (\forall i \in \Omega^\alpha \Rightarrow l(\Omega^\beta)-\lambda i \le k \le u(\Omega^\beta)-\lambda i)
   $$
@@ -118,9 +116,9 @@ computes $\gamma[k]$ for $k\in\Omega^\gamma$.
   }
   $$
 
-Hence the computation of $\gamma[k],\ k\in\Omega^\gamma$ (Eq. 1) is splitted into two parts:  
- - one part $\Omega^\gamma \cap \Omega^\gamma_1$ free of boundary effect  
- - one part $\Omega^\gamma \setminus \Omega^\gamma_1$ that requires boundary extension $\tilde{\beta}=\Phi(\beta,k)$
+Thus the computation of $\gamma[k],\ k\in\Omega^\gamma$ (Eq. 1) is splitted into two parts:  
+ - one part $\Omega^\gamma \cap \Omega^\gamma_1$ *free of boundary effect*,  
+ - one part $\Omega^\gamma \setminus \Omega^\gamma_1$ *that requires boundary extension* $\tilde{\beta}=\Phi(\beta,k)$
 
 The algorithm takes the following form:
 
@@ -199,24 +197,24 @@ conditions.
 
 *** Periodic case
 
-Starting from a function $\beta$ defined on $\llbracket 0, N \rrbracket$
-we want to define a periodic function $\tilde{\beta}$ of period $T=N+1$.
+Starting from a vector $\beta$ defined on $\llbracket L=0, U \rrbracket$
+we want to define a periodic function $\tilde{\beta}$ of period $T=U+1$.
 This function must fulfills the $\tilde{\beta}[j+T]=\tilde{\beta}[j]$ relation.
 
-We can do that by considering $\tilde{\beta}=\beta \circ \phi^P_N(j)$ where
+We can do that by considering $\tilde{\beta}=\beta \circ \phi^P_U(j)$ where
 $$
-\phi^P_N(j)=\bmod_F(j,N+1)
+\phi^P_U(j)=\bmod_F(j,U+1)
 $$
 and $\bmod_F$ is the modulus function associated to a [[https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/divmodnote-letter.pdf][floored division]].
 
-For a function defined on an arbitrary domain $\llbracket j_{\min},
+For a vector defined on an arbitrary domain $\llbracket j_{\min},
 j_{\max} \rrbracket$, we first translate the indices
 $$
 \tau_{j_{\min}}(j)=j-j_{\min}
 $$
 and then translate them back using $\tau^{(-1)}_{j_{\min}}=\tau_{-j_{\min}}$
 
-Putting all together, we build a periodized function 
+Putting all together, we build a periodized vector
 
 $$ \boxed{\tilde{\beta} = \beta \circ \phi^P_{j_{\min},j_{\max}}} $$
 
@@ -233,19 +231,19 @@ $$
 
 *** Mirror Symmetry case
 
-Starting from a function $\beta$ defined on $\llbracket 0, N \rrbracket$
-we can extend it by mirror symmetry on $\llbracket N+1, 2N \rrbracket$
-using
+Starting from a vector $\beta$ defined on $\llbracket L=0, U \rrbracket$
+we can extend it by mirror symmetry on $\llbracket U+1, 2U \rrbracket$
+using $\tilde{\beta}=\beta\circ \phi^M_U$ with
 $$
-\phi^M_N(j)=N-|N-j| 
+\phi^M_U(j)=U-|U-j| 
 $$
 
-The resulting function $\tilde{\beta}=\beta\circ \phi^M_N$  fulfills the
-$\tilde{\beta}[N-j]=\tilde{\beta}[N+j]$ relation for $j\in \llbracket 0, N
+The resulting vector $\tilde{\beta}=\beta\circ \phi^M_U$  fulfills the
+$\tilde{\beta}[U-j]=\tilde{\beta}[U+j]$ relation for $j\in \llbracket 0, U
 \rrbracket$.
 
 To get a "global" definition we then periodize it on $\llbracket 0,
-2N-1 \rrbracket$ using $\phi^P_{2N-1}$ (attention $2N-1$ and not $2N$,
+2U-1 \rrbracket$ using $\phi^P_{2U-1}$ (attention $2U-1$ and not $2U$,
 otherwise the component $0$ is duplicated!).
 
 For an arbitrary domain $\llbracket j_{\min}, j_{\max} \rrbracket$ we use index translation as for the periodic case.
@@ -275,9 +273,12 @@ take care of any validity condition, these formula are general.
 
 * Implementation
 
-This is a straightforward implementation following the presented
-algorithm. We did not try to optimize it, this would have obscured the
-presentation.
+This is a straightforward implementation following as close as
+possible the presented formula. We did not try to optimize it, this
+would have obscured the presentation. Some ideas: reverse $\alpha$ for
+$\lambda<0$ (access memory in the right order), use *simd*, or C++
+meta-programming with loop unrolling for fixed $\alpha$ size,
+specialize regarding to Vector/StridedVector or $\lambda=\pm 1$...
 
 ** Preamble
 
@@ -348,9 +349,9 @@ Note: this definition does not depend on $\tilde{i}_0$.
 
 With $\alpha\_\text{offset}=0$ you are in the "usual situation". If
 you have a window size of $2n+1$, taking $\alpha\_\text{offset}=n$
-take the middle of the window. Here below the graphical representation
-of an arbitrary case: a filter if size $4$, with
-$\alpha\_\text{offset}=2$ and $\lambda=3$.
+returns the middle of the window. Here, in the Fig. below, the
+graphical representation of an arbitrary case: a filter if size $4$,
+with $\alpha\_\text{offset}=2$ and $\lambda=3$.
 
 [[file:a_offset.png]]
 
@@ -362,14 +363,14 @@ We start by defining the basic operations on sets:
 
 #+name: jl_set
 #+begin_src julia 
-function scale(λ::Int,Ω::UnitRange)
+function scale(λ::Int64,Ω::UnitRange)
     ifelse(λ>0,
            UnitRange(λ*start(Ω),λ*last(Ω)),
            UnitRange(λ*last(Ω),λ*start(Ω)))
 end
 
 function compute_Ωγ1(Ωα::UnitRange,
-                     λ::Int,
+                     λ::Int64,
                      Ωβ::UnitRange)
     
     λΩα = scale(λ,Ωα)
@@ -379,7 +380,7 @@ function compute_Ωγ1(Ωα::UnitRange,
 end
 
 function compute_Ωγ2(Ωα::UnitRange,
-                     λ::Int,
+                     λ::Int64,
                      Ωβ::UnitRange)
     
     λΩα = scale(λ,Ωα)
@@ -405,15 +406,17 @@ end
 
 *** Boundary extensions
 
-We then define our periodic extensions. Nothing special there, we only
+We then define the boundary extensions. Nothing special there, we only
 had to check that the Julia *mod(x,y)* function is the floored division
 version (by opposition to the *rem(x,y)* function which is the rounded
 toward zero division version).
 
 #+name: jl_boundary
 #+begin_src julia 
+const tilde_i0 = Int64(1)
+
 function boundaryExtension_zeroPadding{T}(β::StridedVector{T},
-                                          k::Int)
+                                          k::Int64)
     kmin = tilde_i0
     kmax = length(β) + kmin - 1
     
@@ -425,7 +428,7 @@ function boundaryExtension_zeroPadding{T}(β::StridedVector{T},
 end
 
 function boundaryExtension_constant{T}(β::StridedVector{T},
-                                       k::Int)
+                                       k::Int64)
     kmin = tilde_i0
     kmax = length(β) + kmin - 1
 
@@ -439,7 +442,7 @@ function boundaryExtension_constant{T}(β::StridedVector{T},
 end
 
 function boundaryExtension_periodic{T}(β::StridedVector{T},
-                                       k::Int)
+                                       k::Int64)
     kmin = tilde_i0
     kmax = length(β) + kmin - 1
 
@@ -447,7 +450,7 @@ function boundaryExtension_periodic{T}(β::StridedVector{T},
 end
 
 function boundaryExtension_mirror{T}(β::StridedVector{T},
-                                     k::Int)
+                                     k::Int64)
     kmin = tilde_i0
     kmax = length(β) + kmin - 1
 
@@ -456,13 +459,14 @@ end
 
 # For the user interface
 #
-boundaryExtension = Dict(:ZeroPadding=>boundaryExtension_zeroPadding,
-                         :Constant=>boundaryExtension_constant,
-			 :Periodic=>boundaryExtension_periodic,
-			 :Mirror=>boundaryExtension_mirror)
+boundaryExtension = 
+    Dict(:ZeroPadding=>boundaryExtension_zeroPadding,
+         :Constant=>boundaryExtension_constant,
+	 :Periodic=>boundaryExtension_periodic,
+	 :Mirror=>boundaryExtension_mirror)
 #+end_src
 
-*** Main subroutines
+*** Main subroutine
 
 Finally we define the main subroutine. Its arguments have been defined in the *preamble* part.
 
@@ -470,7 +474,7 @@ Finally we define the main subroutine. Its arguments have been defined in the *p
 #+begin_src julia 
 function direct_conv!{T}(tilde_α::StridedVector{T},
                          Ωα::UnitRange,
-                         λ::Int,
+                         λ::Int64,
                          β::StridedVector{T},
                          γ::StridedVector{T},
                          Ωγ::UnitRange,
@@ -526,8 +530,8 @@ end
 # Some UI functions, γ inplace modification 
 #
 function direct_conv!{T}(tilde_α::StridedVector{T},
-                         α_offset::Int,
-			 λ::Int,
+                         α_offset::Int64,
+			 λ::Int64,
 
                          β::StridedVector{T},
 
@@ -553,9 +557,11 @@ function direct_conv!{T}(tilde_α::StridedVector{T},
                  RightBoundary)
 end
 
+# Some UI functions, allocates γ 
+#
 function direct_conv{T}(tilde_α::StridedVector{T},
-                        α_offset::Int,
-			λ::Int,
+                        α_offset::Int64,
+			λ::Int64,
 
                         β::StridedVector{T},
 
@@ -583,9 +589,8 @@ end
 
 #+begin_src julia :tangle yes :tangle DirectConv.jl :noweb yes :exports none
 # Attention: do not modify me, tangled from directConv.org
+# Please keep ref: 
 module DirectConv
-
-const tilde_i0 = Int64(1)
 
 <<jl_set>>
 
@@ -601,26 +606,84 @@ end
 
 ** In C/C++
 
-for mod
-http://x86.renejeschke.de/html/file_module_x86_id_137.html
+As this post is already long I will not provide a complete code here. The only trap is to use the right *mod* function.
 
-optimization: static size for alpha an static lambda -> loop unrolling
+C/C++ modulus operator % is not standardized. Only the
+*D%d=D-d*(D/d)* relation is *invariant* allowing to define the
+Euclidean division. On the other side a lot of CPU [[http://x86.renejeschke.de/html/file_module_x86_id_137.html][x86 idiv]]...,
+truncates toward zero, as a consequence C/C++ generally use this
+direction.
 
-#pragma omp simd
+To be sure, we have to explicitly use our *F-mod* function:
 
-...
+#+begin_src C++
+// Floored mod
+int modF(int D, int d)
+{
+    int r = std::fmod(D,d);
+    if((r > 0 && d < 0) || (r < 0 && d > 0)) r = r + d;
+    return r;
+}
+#+end_src
+
+You can read:
+
+- [[https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/divmodnote-letter.pdf][Division and Modulus for Computer Scientists, Daan Leijen]]
+- [[https://www.researchgate.net/publication/234829884_The_Euclidean_definition_of_the_functions_div_and_mod][The Euclidean definition of the functions div and mod, R.T. Boute]]
+- [[http://en.cppreference.com/w/cpp/numeric/fenv/FE_round][http://en.cppreference.com/w/cpp/numeric/fenv/FE_round]]
+- [[http://stackoverflow.com/questions/4102423/efficiently-implementing-floored-euclidean-integer-division][Stackoverflow: Efficiently implementing floored / euclidean integer division]]
 
 
 * Usages examples
 
 ** Basic usages
 
-# #+begin_src julia :results output
-# push!(LOAD_PATH, "/home/picaud/GitHub/DropBoxRepository/Archive/Draft/DirectConv/")
-# using DirectConv
-# #+end_src
+#+begin_src julia :results output
+push!(LOAD_PATH,"./")
+using DirectConv
+
+α=rand(4);
+β=rand(100);
+
+@time direct_conv(α,20,1,β,:Constant,:Constant);
+#+end_src
 
 #+RESULTS:
+:   0.187260 seconds (29.98 k allocations: 1.254 MB)
+
+* Discussion
+
+I m a beginner in Julia language and I would like to know the reason
+why there are so many dynamic memory allocations? I guess I m doing
+something wrong somewhere... How can we detect & control them?  In
+C/C++, I'm at home, you can safely write down the algorithm without (or very few)
+memory allocation and you have a lot of profiling tools. I do not know if
+such tools exist for Julia. If I have time I will maybe try to
+benchmark two basic implementations, a Julia one vs a C/C++ one.
+
+I would be curious to see the difference between a basic
+implementation and an optimized one in Julia. Just to see how
+optimization can obfuscate (or not) the initial code and the
+performance gain. In C++ you generally have a lot of boiler-plate code
+(meta-programming...) but you control everything.
+
+(do not misread me: I like how Julia code is clean and easy to
+write/read. I'm not telling that one language is better than another,
+I am just saying that they are different and have their own pros and
+cons.)
+
+The basic Eq. (1) is common tool that can be used for:
+- deconvolution procedures, 
+- decimated and undecimated wavelet transforms,
+- ... 
+
+I will certainly write some posts on this kind of stuff.
+
+Some extra reading:
+
+- The FFT way: [[http://cdn.intechopen.com/pdfs/41657.pdf][Algorithms for Efficient Computation of Convolution, K. Pavel]]
+- The Winograd’s minimal filtering algorithms way: [[http://arxiv.org/pdf/1509.09308v2.pdf][Fast Algorithms for Convolutional Neural Networks, A. Lavin, S. Gray]]
+- The OpenCL/GUPU way: [[http://www.cmsoft.com.br/opencl-tutorial/case-study-high-performance-convolution-using-opencl-__local-memory/][Case study: High performance convolution using OpenCL __local memory]]
 
 * Complement: more domains
 
@@ -661,23 +724,5 @@ $$
 }
 $$
 
-* Complement: some readings
-
-** Modulus
-
-- [[https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/divmodnote-letter.pdf][Division and Modulus for Computer Scientists, Daan Leijen]]
-- [[https://www.researchgate.net/publication/234829884_The_Euclidean_definition_of_the_functions_div_and_mod][The Euclidean definition of the functions div and mod, R.T. Boute]]
-- [[http://stackoverflow.com/questions/4102423/efficiently-implementing-floored-euclidean-integer-division][Stackoverflow: Efficiently implementing floored / euclidean integer division]]
-
-** Convolution
-
-- [[http://arxiv.org/pdf/1509.09308v2.pdf][Fast Algorithms for Convolutional Neural Networks, A. Lavin, S. Gray]]
-- [[http://cdn.intechopen.com/pdfs/41657.pdf][Algorithms for Efficient Computation of Convolution, K. Pavel]]
-
-
 # latex-test.png http://pixorblog.files.wordpress.com/2016/07/latex-test6.png
-
-
-
-
 # a_offset.png http://pixorblog.files.wordpress.com/2016/07/a_offset3.png

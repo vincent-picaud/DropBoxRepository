@@ -1,16 +1,15 @@
 # Attention: do not modify me, tangled from directConv.org
+# Please keep ref: 
 module DirectConv
 
-const tilde_i0 = Int(1)
-
-function scale(λ::Int,Ω::UnitRange)
+function scale(λ::Int64,Ω::UnitRange)
     ifelse(λ>0,
            UnitRange(λ*start(Ω),λ*last(Ω)),
            UnitRange(λ*last(Ω),λ*start(Ω)))
 end
 
 function compute_Ωγ1(Ωα::UnitRange,
-                     λ::Int,
+                     λ::Int64,
                      Ωβ::UnitRange)
     
     λΩα = scale(λ,Ωα)
@@ -20,7 +19,7 @@ function compute_Ωγ1(Ωα::UnitRange,
 end
 
 function compute_Ωγ2(Ωα::UnitRange,
-                     λ::Int,
+                     λ::Int64,
                      Ωβ::UnitRange)
     
     λΩα = scale(λ,Ωα)
@@ -43,12 +42,14 @@ function relelativeComplement_right(A::UnitRange,
               last(A))
 end
 
+const tilde_i0 = Int64(1)
+
 function boundaryExtension_zeroPadding{T}(β::StridedVector{T},
-                                          k::Int)
+                                          k::Int64)
     kmin = tilde_i0
     kmax = length(β) + kmin - 1
     
-    if (k>=1)&&(k<=kmax)
+    if (k>=kmin)&&(k<=kmax)
         β[k]
     else
         T(0)
@@ -56,7 +57,7 @@ function boundaryExtension_zeroPadding{T}(β::StridedVector{T},
 end
 
 function boundaryExtension_constant{T}(β::StridedVector{T},
-                                       k::Int)
+                                       k::Int64)
     kmin = tilde_i0
     kmax = length(β) + kmin - 1
 
@@ -70,7 +71,7 @@ function boundaryExtension_constant{T}(β::StridedVector{T},
 end
 
 function boundaryExtension_periodic{T}(β::StridedVector{T},
-                                       k::Int)
+                                       k::Int64)
     kmin = tilde_i0
     kmax = length(β) + kmin - 1
 
@@ -78,7 +79,7 @@ function boundaryExtension_periodic{T}(β::StridedVector{T},
 end
 
 function boundaryExtension_mirror{T}(β::StridedVector{T},
-                                     k::Int)
+                                     k::Int64)
     kmin = tilde_i0
     kmax = length(β) + kmin - 1
 
@@ -87,14 +88,15 @@ end
 
 # For the user interface
 #
-boundaryExtension = Dict(:ZeroPadding=>boundaryExtension_zeroPadding,
-                         :Constant=>boundaryExtension_constant,
-			 :Periodic=>boundaryExtension_periodic,
-			 :Mirror=>boundaryExtension_mirror)
+boundaryExtension = 
+    Dict(:ZeroPadding=>boundaryExtension_zeroPadding,
+         :Constant=>boundaryExtension_constant,
+	 :Periodic=>boundaryExtension_periodic,
+	 :Mirror=>boundaryExtension_mirror)
 
 function direct_conv!{T}(tilde_α::StridedVector{T},
                          Ωα::UnitRange,
-                         λ::Int,
+                         λ::Int64,
                          β::StridedVector{T},
                          γ::StridedVector{T},
                          Ωγ::UnitRange,
@@ -150,8 +152,8 @@ end
 # Some UI functions, γ inplace modification 
 #
 function direct_conv!{T}(tilde_α::StridedVector{T},
-                         α_offset::Int,
-			 λ::Int,
+                         α_offset::Int64,
+			 λ::Int64,
 
                          β::StridedVector{T},
 
@@ -177,9 +179,11 @@ function direct_conv!{T}(tilde_α::StridedVector{T},
                  RightBoundary)
 end
 
+# Some UI functions, allocates γ 
+#
 function direct_conv{T}(tilde_α::StridedVector{T},
-                        α_offset::Int,
-			λ::Int,
+                        α_offset::Int64,
+			λ::Int64,
 
                         β::StridedVector{T},
 
