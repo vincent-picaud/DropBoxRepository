@@ -18,16 +18,6 @@ function compute_Ωγ1(Ωα::UnitRange,
               last(Ωβ)-last(λΩα))
 end
 
-function compute_Ωγ2(Ωα::UnitRange,
-                     λ::Int64,
-                     Ωβ::UnitRange)
-    
-    λΩα = scale(λ,Ωα)
-
-    UnitRange(start(Ωβ)-last(λΩα),
-              last(Ωβ)-start(λΩα))
-end
-
 # Left & Right relative complements A\B
 #
 function relelativeComplement_left(A::UnitRange,
@@ -91,8 +81,8 @@ end
 boundaryExtension = 
     Dict(:ZeroPadding=>boundaryExtension_zeroPadding,
          :Constant=>boundaryExtension_constant,
-	 :Periodic=>boundaryExtension_periodic,
-	 :Mirror=>boundaryExtension_mirror)
+         :Periodic=>boundaryExtension_periodic,
+         :Mirror=>boundaryExtension_mirror)
 
 function direct_conv!{T}(tilde_α::StridedVector{T},
                          Ωα::UnitRange,
@@ -144,7 +134,7 @@ function direct_conv!{T}(tilde_α::StridedVector{T},
     
     for k in rΩγ1_right
         for i in tilde_Ωα
-	    γ[k]+=tilde_α[i]*Φ_right(β,k+λ*i+β_offset)
+            γ[k]+=tilde_α[i]*Φ_right(β,k+λ*i+β_offset)
         end
     end
 end
@@ -153,7 +143,7 @@ end
 #
 function direct_conv!{T}(tilde_α::StridedVector{T},
                          α_offset::Int64,
-			 λ::Int64,
+                         λ::Int64,
 
                          β::StridedVector{T},
 
@@ -170,12 +160,12 @@ function direct_conv!{T}(tilde_α::StridedVector{T},
                  Ωα,
                  λ,
                  
-		 β,
+                 β,
 
                  γ,
                  Ωγ,
 
-		 LeftBoundary,
+                 LeftBoundary,
                  RightBoundary)
 end
 
@@ -183,7 +173,7 @@ end
 #
 function direct_conv{T}(tilde_α::StridedVector{T},
                         α_offset::Int64,
-			λ::Int64,
+                        λ::Int64,
 
                         β::StridedVector{T},
 
@@ -199,7 +189,7 @@ function direct_conv{T}(tilde_α::StridedVector{T},
                  β,
 
                  γ,
-		 UnitRange(1,length(γ)),
+                 UnitRange(1,length(γ)),
 
                  LeftBoundary,
                  RightBoundary)
