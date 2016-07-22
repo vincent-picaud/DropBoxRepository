@@ -379,16 +379,6 @@ function compute_Ωγ1(Ωα::UnitRange,
               last(Ωβ)-last(λΩα))
 end
 
-function compute_Ωγ2(Ωα::UnitRange,
-                     λ::Int64,
-                     Ωβ::UnitRange)
-    
-    λΩα = scale(λ,Ωα)
-
-    UnitRange(start(Ωβ)-last(λΩα),
-              last(Ωβ)-start(λΩα))
-end
-
 # Left & Right relative complements A\B
 #
 function relelativeComplement_left(A::UnitRange,
@@ -462,8 +452,8 @@ end
 boundaryExtension = 
     Dict(:ZeroPadding=>boundaryExtension_zeroPadding,
          :Constant=>boundaryExtension_constant,
-	 :Periodic=>boundaryExtension_periodic,
-	 :Mirror=>boundaryExtension_mirror)
+         :Periodic=>boundaryExtension_periodic,
+         :Mirror=>boundaryExtension_mirror)
 #+end_src
 
 *** Main subroutine
@@ -525,7 +515,7 @@ function direct_conv!{T}(tilde_α::StridedVector{T},
     
     for k in rΩγ1_right
         for i in tilde_Ωα
-	    γ[k]+=tilde_α[i]*Φ_right(β,k+λ*i+β_offset)
+            γ[k]+=tilde_α[i]*Φ_right(β,k+λ*i+β_offset)
         end
     end
 end
@@ -534,7 +524,7 @@ end
 #
 function direct_conv!{T}(tilde_α::StridedVector{T},
                          α_offset::Int64,
-			 λ::Int64,
+                         λ::Int64,
 
                          β::StridedVector{T},
 
@@ -551,12 +541,12 @@ function direct_conv!{T}(tilde_α::StridedVector{T},
                  Ωα,
                  λ,
                  
-		 β,
+                 β,
 
                  γ,
                  Ωγ,
 
-		 LeftBoundary,
+                 LeftBoundary,
                  RightBoundary)
 end
 
@@ -564,7 +554,7 @@ end
 #
 function direct_conv{T}(tilde_α::StridedVector{T},
                         α_offset::Int64,
-			λ::Int64,
+                        λ::Int64,
 
                         β::StridedVector{T},
 
@@ -580,7 +570,7 @@ function direct_conv{T}(tilde_α::StridedVector{T},
                  β,
 
                  γ,
-		 UnitRange(1,length(γ)),
+                 UnitRange(1,length(γ)),
 
                  LeftBoundary,
                  RightBoundary)
@@ -614,7 +604,7 @@ As this post is already long I will not provide a complete code here. The only t
 C/C++ modulus operator % is not standardized. Only the
 *D%d=D-d*(D/d)* relation is *invariant* allowing to define the
 Euclidean division. On the other side a lot of CPU [[http://x86.renejeschke.de/html/file_module_x86_id_137.html][x86 idiv]]...,
-truncates toward zero, as a consequence C/C++ generally use this
+truncate toward zero, as a consequence C/C++ generally uses this
 direction.
 
 To be sure, we have to explicitly use our *F-mod* function:
@@ -692,8 +682,10 @@ d2=dot(direct_conv(α,-1,+3,β,:Periodic,:Periodic),vβ)
 #    (asymmetric role of α and β)
 v1=zeros(20)
 v2=zeros(20)
-direct_conv!(α,0,-1,β,v1,UnitRange(1,20),:ZeroPadding,:ZeroPadding)
-direct_conv!(β,0,-1,α,v2,UnitRange(1,20),:ZeroPadding,:ZeroPadding)
+direct_conv!(α,0,-1,
+             β,v1,UnitRange(1,20),:ZeroPadding,:ZeroPadding)
+direct_conv!(β,0,-1,
+             α,v2,UnitRange(1,20),:ZeroPadding,:ZeroPadding)
 
 @assert (norm(v1-v2)<sqrt(eps()))
 
@@ -728,24 +720,15 @@ function apply_filter{T}(filter::StridedVector{T},signal::StridedVector{T})
     halfWindow = round(Int,(length(filter)-1)/2)
     
     padded_signal = 
-	[signal[1]*ones(halfWindow);
+        [signal[1]*ones(halfWindow);
          signal;
          signal[end]*ones(halfWindow)]
 
-    filter_cross_signal = conv(filter[end:-1:1], padded_signal)
+    filter_cross_signal = conv(filter[end:-1:1],
+                               padded_signal)
 
-    return filter_cross_signal[2*halfWindow+1:end-2*halfWindow]
+    filter_cross_signal[2*halfWindow+1:end-2*halfWindow]
 end
-
-# Check that we get the same result!
-halfWidth = 5
-α=rand(2*halfWidth+1);
-β=rand(2016);
-
-fft_v = apply_filter(α,β)
-direct_v = direct_conv(α,halfWidth,1,β,:Constant,:Constant)
-
-@assert (norm(fft_v -direct_v)<sqrt(eps()))
 
 # Now we can create a (very) rough benchmark
 M=Array(Float64,0,3)
@@ -758,12 +741,16 @@ for halfWidth in 1:2:40
     fft_t1 = time()
 
     direct_t0 = time()
-    direct_v = direct_conv(α,halfWidth,1,β,:Constant,:Constant)
+    direct_v = direct_conv(α,halfWidth,1,β,
+                           :Constant,:Constant)
     direct_t1 = time()
 
     @assert (norm(fft_v -direct_v)<sqrt(eps()))
 
-    M=vcat(M,Float64[length(α) (fft_t1-fft_t0)*1e3 (direct_t1-direct_t0)*1e3])
+    M=vcat(M,
+           Float64[length(α)
+                   (fft_t1-fft_t0)*1e3
+                   (direct_t1-direct_t0)*1e3])
 end
 M
 #+end_src
@@ -820,19 +807,14 @@ Conclusion: for *small filters*, use a *direct* approach!
 ** Optimization/performance
 
   If I have time I will try to benchmark two basic
-  implementations, a Julia one vs a C/C++ one. I m a beginner in Julia
-  language, with C/C++, I'm more at home.
+  implementations, a Julia one vs a C/C++ one. I'm a beginner in Julia
+  language, with C++, I'm more at home.
 
   I would be curious to see the difference between a basic
   implementation and an optimized one in Julia. Just to see how
   optimization can obfuscate (or not) the initial code and the
   performance gain. In C++ you generally have a lot of boiler-plate code
   (meta-programming...).
-
-  (do not misread me: I like how Julia code is clean and easy to
-  write/read. I'm not telling that one language is better than another,
-  I am just saying that they are different and have their own pros and
-  cons.)
 
 ** Applications
 
@@ -841,7 +823,9 @@ Conclusion: for *small filters*, use a *direct* approach!
 - decimated and undecimated wavelet transforms,
 - ... 
 
-I will certainly write some posts on these stuff.
+For wavelet transform especially the undecimated one, AFAIK Eq. (1)
+is really the good choice.  I will certainly write some posts on these
+stuff.
 
 Some extra reading:
 
