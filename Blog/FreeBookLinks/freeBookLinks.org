@@ -1,0 +1,79 @@
+#+BLOG: wordpress
+#+POSTID: 295
+#+DATE: [2016-07-01 Fri 07:40]
+#+OPTIONS: toc:nil num:nil todo:nil pri:nil tags:nil ^:nil
+#+CATEGORY: Some links, Computations
+#+TAGS:
+#+DESCRIPTION:
+#+TITLE: Some links on free tech books
+
+A place to store some of my links...  
+
+To be updated randomly...
+
+* Database/repos
+
+- [[http://www.freetechbooks.com/][Free tech books]]
+
+  Plenty of books!
+
+- [[http://greenteapress.com/wp/][Green Tea Press, Free books by Allen Downey]]
+
+  Mainly computing & python (I'm not a Python adept...)
+
+- [[http://ebooks.library.cornell.edu/m/math/][Cornell University Library Historical Mathematics Monographs]] 
+
+  A collection of selected monographs with expired copyrights chosen
+  from the mathematics field.
+
+* Individual links
+
+** Signal processing
+
+- [[http://www.ece.rutgers.edu/~orfanidi/intro2sp/][Introduction to Signal Processing, S.J. Orfanidis]]
+
+
+** Numerical linear algebra
+
+- [[http://www-users.cs.umn.edu/~saad/books.html][Yousef Saad - books]]
+
+  By the father of the GMRES method!
+
+** Optimization
+
+- [[http://stanford.edu/~boyd/books.html][Stephen P. Boyd – Books]]
+
+
+- [[http://www.mit.edu/~dimitrib/lagr_mult.html][Constrained Optimization and Lagrange Multiplier Methods, Dimitri P. Bertsekas]]
+
+
+** "Machine learning"/Information theory/Statistics
+
+- [[http://www.cs.huji.ac.il/~shais/UnderstandingMachineLearning/copy.html][Understanding Machine Learning: From Theory to Algorithms]]
+
+  Authors homepage: [[http://www.cs.huji.ac.il/~shais/publications.html][Shai Shalev-Shwartz]], [[https://cs.uwaterloo.ca/~shai/publications.html][Shai Ben-David]]
+
+
+- [[http://www.gaussianprocess.org/gpml/][Gaussian Processes for Machine Learning, Carl Rasmussen, Christopher Williams]]
+
+
+- [[http://www.inference.phy.cam.ac.uk/itprnn/book.html][Information Theory, Inference, and Learning Algorithms, David MacKay]]
+
+  R.I.P.
+
+
+* PhD / Reports
+
+- [[http://www.cse.buffalo.edu/faculty/mbeal/thesis/][Variational Algorithms for Approximate Bayesian Inference, Matthew J. Beal]]
+
+  I really like this one. IMHO a must read, before starting with tools like [[http://mc-stan.org/][Stan]]. 
+
+  Also some homepage links: [[http://www.proditus.com/papers.html][Alp Kucukelbir]], [[http://dustintran.com/][Dustin Tran]]
+
+
+- [[http://arxiv.org/abs/1408.0952][A Primer on Reproducing Kernel Hilbert Spaces, Jonathan H. Manton, Pierre-Olivier Amblard]]
+
+
+- [[http://www.montefiore.ulg.ac.be/~glouppe/pdf/phd-thesis.pdf][Understanding Random Forests, G. Louppe]]
+
+  Very pleasant to read!
