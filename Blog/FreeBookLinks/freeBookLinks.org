@@ -70,6 +70,7 @@ To be updated randomly...
 
   Also some homepage links: [[http://www.proditus.com/papers.html][Alp Kucukelbir]], [[http://dustintran.com/][Dustin Tran]]
 
+- [[http://www.cs.toronto.edu/~duvenaud/thesis.pdf][Automatic Model Construction with Gaussian Processes, D. Duvenaud]]
 
 - [[http://arxiv.org/abs/1408.0952][A Primer on Reproducing Kernel Hilbert Spaces, Jonathan H. Manton, Pierre-Olivier Amblard]]
 
