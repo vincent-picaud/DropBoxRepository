@@ -19,5 +19,7 @@ namespace Foo
     void foo_version_ns_ok(const T& t)
     {
         ns_foo_ok(Internal::Dispatch<MethodEnum::END>(), t);
+        // Does not work anymore -> qualified name!!!
+        //  Internal::ns_foo_ok(Internal::Dispatch<MethodEnum::END>(), t);
     }
 }
