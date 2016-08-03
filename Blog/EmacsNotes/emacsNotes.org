@@ -76,6 +76,28 @@ You can select a rectangular region with *C-x space*.
 
 can be useful for *tabular data*...
 
+* Misc
+
+** Julia & ESS
+
+If you want to start Julia with some command line options in [[http://ess.r-project.org/][Emacs Speaks Statistics (ESS)]], just use [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Prefix-Command-Arguments.html][a Emacs prefix argument]]. 
+
+For instance
+
+#+BEGIN_EXAMPLE
+C-u M-x Julia
+#+END_EXAMPLE
+
+then ESS will prompt for "Starting Args ? ".
+
+Enter (for example):
+
+#+BEGIN_EXAMPLE
+--depwarn=no --check-bounds=no
+#+END_EXAMPLE
+
+to suppress *method deprecation warnings* and *bounds checks*.
+
 * Going faster
 
 ** Fast separator
