@@ -1,0 +1,98 @@
+#+BLOG: wordpress
+#+POSTID: 571
+#+DATE: [2016-08-09 Tue 18:16]
+#+BLOG: wordpress
+#+OPTIONS: toc:nil num:nil todo:nil pri:nil tags:nil ^:nil tex:t
+#+CATEGORY: Computations
+#+TAGS:
+#+DESCRIPTION:
+
+#+TITLE: Yet another Expectation-Maximization (EM) tutorial
+
+* Exercice
+Lets check it works by reproducing an example of censored data from [[http://www.webpages.uidaho.edu/~stevel/565/literature/Exercise%2520in%2520EM.pdf][Exercises in EM, B. Fleury, A. Zoppè]].
+
+We suppose thath the lifetime of litebulbs follows an exponential law:
+
+$$
+\text{Pr}(T\ge t)=\int_{t}^\infty \lambda e^{- \lambda u}du
+$$
+(this represents the probality that the litebulb is still working after time $t$)
+
+We denote its PDF by $\pi(t)=\lambda e^{- \lambda u}$
+
+A total of $M+N$ litebulbs are tested in two independant experiments:
+  - in the first experiment, with $N$ bulbs, the exact lifetimes $x_1,..x_N$ is recorder.
+  - in the second one, the experimenter enters at time $t_0$ and
+    registers that some of the $M$ litebulbs are still burning, while
+    the others have expired. Thus, the results are indicators
+    $E_1,...E_M$, where
+        -  $E_i=0$ if the light is out 
+        -  $E_i=1$ if the light is still working
+
+The question is "which if the MLE $\hat{\lambda}$?
+
+
+** Resolution
+Let 
+$$
+X=(X_1,...,X_N,E_1,...E_M)
+$$
+ the *observed* data from both the experiments combined.
+
+Let 
+$$
+Z=(Z_1,...,Z_M)
+$$
+ be the *unobserved* lifetimes associated with the second experiment and $W=\sum E_i$ the number of bulbs still working at time $t_0$.
+
+Let 
+$$
+(X,Z)=(X_1,...,X_N,Z_1,...,Z_M)
+$$
+
+be a hypothetical random variable containing the complete result of
+the two experiment. The $E_i$ are discarded as they do not contain
+extra information if the $Z_i$ are known.
+
+The complete log likelihood is:
+$$
+\log p(X,Z|\lambda)= \sum\limits_{i=1}^N \log \pi(X_i) + \sum\limits_{i=1}^M \log \pi(Z_i)
+$$
+$$
+\log p(X,Z|\lambda)= N(\log(\lambda)-\lambda \bar{X}) + \sum\limits_{i=1}^M (\log\lambda-\lambda Z_i)
+$$
+
+To use our EM algorithm we have to compute (E-step):
+$$
+\mathbb{E}_{Z|X,\lambda^m}[\log{p(X,Z|\lambda)}]
+$$
+
+The first simplification comes from the fact that the two experiments are independant, hence:
+$$
+\mathbb{E}_{Z|X,\lambda^m}[\log{p(X,Z|\lambda)}] = \mathbb{E}_{Z|X,\lambda^m}[\log{p(X|\lambda)}] + \mathbb{E}_{Z|X,\lambda^m}[\log{p(Z|\lambda)}]
+$$
+Like $p(X|\lambda)$ does not depend on $Z$ we have:
+$$
+\mathbb{E}_{Z|X,\lambda^m}[\log{p(X|\lambda)}] = \log{p(X|\lambda)} = N(\log(\lambda)-\lambda \bar{X})
+$$
+Now we must process the remaning term 
+$$
+\mathbb{E}_{Z|X,\lambda^m}[\log{p(Z|\lambda)}] = \int p(Z|X,\lambda^m) \log{p(Z|\lambda)} dZ
+$$
+
+The first step is to compute $p(Z|X,\lambda^m)$. We must remember that the *observed* data $X$ contains the indicators $E_i$. We have two cases:
+
+- $E_i=0$, which mean that the bulb $i$ has burned out before time $t=t_0$. 
+ In another words we must find the probability $P_A$ such that:
+$$
+P_A(t)=\text{Pr}(T\le t | T\le t_0)=\frac{\text{Pr}(T\le t,T\le t_0)}{\text{Pr}(T\le t_0)}
+$$
+a direct computation give:
+$$
+P_A(t)=\frac{1-e^{-\lambda t}}{1-e^{-\lambda t_0}}\text{ if }t\le t_0,\ 0\text{ otherwise }
+$$
+by differentiating $\frac{d}{dt}P_A(t)$ we find the conditioned density:
+$$
+p(Z_i|E_i=0,\lambda^m)=\frac{\lambda e^{-\lambda Z_i}}{1-e^{-\lambda t_0}}\text{ if }t\le t_0,\ 0\text{ otherwise }
+$$
