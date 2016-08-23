@@ -11,7 +11,7 @@ Some Emacs reminders, to be updated from time to time
 
 * Emacs history
 
-You can store your compile command, regex by telling to Emacs to store all these stuff.
+You can store your *compile commands*, *regex expressions*,... by telling to Emacs to store all these stuff.
 
 Simply add 
 #+BEGIN_SRC lisp
@@ -31,12 +31,12 @@ must type:
 \\(foo\\|bar\\)
 #+END_SRC
 
-It is much better to use the *string* mode which do not have this issue, for example:
+It is much better to use the *string* mode which does not have this issue, for example:
 #+BEGIN_SRC lisp
 \(foo\|bar\)
 #+END_SRC
 
-You can either use customize your default mode (*M-x customize-variable RET
+You can either customize your default mode (*M-x customize-variable RET
 reb-re-syntax RET*) or set the variable (*reb-re-syntax*) directly in your *emacs* configuration file:
 
 #+BEGIN_SRC lisp
@@ -162,9 +162,9 @@ to you *emacs* file. You can use it by pressing *f2*.
 
 ** Use greek letters
 
-In *Julia* for instance you can and I find convenient to use *greek
-letters*. This can be easily done with *M-g + letter*.  Found [[http://stackoverflow.com/questions/10192341/how-to-enter-greek-characters-in-emacs][in this
-stackoverflow post]], just add this to your *.emacs* file.
+In *Julia language* for instance you can use *greek letters*. This can
+be easily done with *M-g + letter*.  Found [[http://stackoverflow.com/questions/10192341/how-to-enter-greek-characters-in-emacs][in this stackoverflow post]],
+just add this to your *.emacs* file.
 
 #+BEGIN_SRC lisp
 (global-set-key (kbd "M-g a") "α")
