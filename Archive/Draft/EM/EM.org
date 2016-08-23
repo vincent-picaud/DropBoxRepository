@@ -6,8 +6,113 @@
 #+CATEGORY: Computations
 #+TAGS:
 #+DESCRIPTION:
-
 #+TITLE: Yet another Expectation-Maximization (EM) tutorial
+
+* Introduction
+
+Given some *observed* data $X$, *unobserved* (or *latent*) variables $Z$ our goal is to estimate the model parameters $\theta$:
+$$
+P(\theta|X,Z)
+$$
+Most of the time a full Bayesian approach is not possible, because 
+$$
+p(\theta|X)=\frac{p(X|\theta)p(\theta)}{p(X)}
+$$
+(by marginalization $p(X|\theta)=\int p(X,Z|\theta) dZ$), is intractable.
+
+By intractable we mean that the knowing of the "full" distribution
+$p(\theta|X)$ requires the computation of the *evidence* $p(X)$
+(normalizing factor). This *evidence* can be computed as follow:
+$$ 
+\int p(\theta|X) d\theta = 1 =
+\frac{1}{p(X)}\int p(X|\theta)p(\theta) d\theta 
+$$ 
+hence $p(X)=\int p(X|\theta)p(\theta) d\theta$.
+
+This is "moral" in a Bayesian approach, where we need to marginalize
+over model parameters, unfortunately the involved 
+integral is intractable most of the time.
+
+Thus we must use a less ambitious approach where we do not marginalize over $\theta$ but only search for a $\theta \rightarrow p(\theta|X) (local) maximum.
+This is the so called Maximum A Posteriory (MAP) approach:
+$$
+\theta_\text{MAP}=\arg\max\limits_\theta  p(\theta|X)= \arg\max\limits_\theta  p(X|\theta)p(\theta)
+$$
+An even more crude approach (it ignores the prior on $\theta$) is to perform a Maximum Likelihood (ML) estimate:
+$$
+\theta_\text{ML} = \arg\max\limits_\theta  p(X|\theta)
+$$
+
+Note that, for interpretability and numerical convenience, we
+generally maximize the logarithm of these quantities. For instance,
+$$
+\theta_\text{MAP}=\arg\max\limits_\theta  p(X|\theta)p(\theta) = \arg\max\limits_\theta  \log{p(X|\theta)} + \log{p(\theta)}
+$$
+
+These optimization problems you can be solved using optimization algorithms.
+
+The *EM* algorithm allows to compute $\theta_\text{ML}$ (or $\theta_\text{MAP}$)  in the special case where:
+$$
+p(X|\theta)=\int p(X,Z|\theta) dZ
+$$
+
+TODO pas clair This is an iterative algorithm where we maximize a $\theta\rightarrow
+Q(\theta,\theta^{(m)})$ function, where $\theta^{(m)}$ is our current
+estimate of $\theta$ and $Q(.,\theta^{(m)})$ a minoring function such that:
+
+* Prerequisites
+
+** The [[https://en.wikipedia.org/wiki/Kullback%25E2%2580%2593Leibler_divergence][Kullback–Leibler divergence]]
+
+** The [[https://en.wikipedia.org/wiki/MM_algorithm][Minorization Maximization algorithm]]
+
+** The [[https://en.wikipedia.org/wiki/Jensen's_inequality][Jensen's inequality]]
+
+
+* Step by step derivation of the EM algorithm
+
+Our goal is to maximize:
+$$
+p(X|\theta)=\int p(X,Z|\theta) dZ
+$$
+or equivalently
+$$
+\log p(X|\theta)=\log \int p(X,Z|\theta) dZ
+$$
+
+*The first idea* is to build a minorating function using the Jensen's
+inequality. This can be done introducing an arbitrary probability
+distribution $q$ (we have $\int q(Z)dZ=1$ and we also require
+$q(Z)=0\Rightarrow p(X,Z|\theta)=0$):
+
+$$
+\log p(X|\theta) = \log \int p(X,Z|\theta) dZ = \log \int q(Z) \frac{p(X,Z|\theta)}{q(Z)} dZ
+$$
+
+Using Jensen's inequality ($\log$ is concave) we get: 
+$$ 
+\log p(X|\theta) \ge \int q(Z) \log \frac{p(X,Z|\theta)}{q(Z)} dZ =
+-\text{KL}(q(Z)\|p(X,Z|\theta)) 
+$$
+
+But we are curious and we want to know the difference 
+$$
+\log p(X|\theta)-\left(-\text{KL}(q(Z)\|p(X,Z|\theta))\right)
+$$
+
+as $p(X|\theta)$ does not depend on $Z$ we have $\log
+p(X|\theta)=\int q(Z)\log p(X|\theta) dZ$ and we can write:
+
+$$
+\log p(X|\theta)-\left(-\text{KL}(q(Z)\|p(X,Z|\theta))\right) = 
+\int q(Z)\left( \log p(X|\theta) + \log \frac{q(Z)}{p(X,Z|\theta)} \right) dZ
+$$
+with $P(X,Z|\theta)=p(Z|X,\theta)p(X|\theta)$ this reduces to:
+ 
+$$
+\log p(X|\theta)-\left(-\text{KL}(q(Z)\|p(X,Z|\theta))\right) = 
+\int q(Z) \log \frac{q(Z)}{p(Z|X,\theta)} dZ = \text{KL}(q(Z)\|p(Z|X,\theta))
+$$
 
 * Exercice
 Lets check it works by reproducing an example of censored data from [[http://www.webpages.uidaho.edu/~stevel/565/literature/Exercise%2520in%2520EM.pdf][Exercises in EM, B. Fleury, A. Zoppè]].

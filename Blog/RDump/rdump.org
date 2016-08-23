@@ -1,0 +1,65 @@
+#+BLOG: wordpress
+#+POSTID: 586
+#+DATE: [2016-08-13 Sat 08:28]
+#+OPTIONS: toc:nil num:nil todo:nil pri:nil tags:nil ^:nil
+#+CATEGORY: Mathematica, Stan
+#+TAGS:
+#+DESCRIPTION:
+#+TITLE: Mathematica RDump export for Stan data files
+
+A short post to share some functions to export *scalar*, *vector* or
+*matrix* from Mathematica in *R-Dump* format. 
+
+I use these to create [[http://mc-stan.org/][Stan]] input data files.
+
+You can read about *RDump* format in [[https://github.com/stan-dev/cmdstan/releases/download/v2.11.0/cmdstan-guide-2.11.0.pdf][CmdStan pdf doc, Appendix C]].
+
+#+BEGIN_SRC mathematica
+ToStringRDumpHelper[V_ /; VectorQ[V]] :=
+StringJoin["c(",StringTake[ToString[Map[CForm, V]], {2, -2}],")"];
+
+ToStringRDump[{MatName_,M_}/;StringQ[MatName]&&MatrixQ[M]]:=
+StringJoin[MatName," <- structure(",
+ToStringRDumpHelper[Flatten[Transpose[M]]],
+", .Dim = ",ToStringRDumpHelper[Dimensions[M]],")\n"];
+
+ToStringRDump[{VectName_,V_}/;StringQ[VectName]&&VectorQ[V]]:=
+StringJoin[VectName," <- ",ToStringRDumpHelper[V],"\n"];
+
+ToStringRDump[{VarName_,Var_}/;StringQ[VarName]&&NumberQ[Var]]:=
+StringJoin[VarName," <- ",ToString[Var],"\n"];
+
+ExportRDump[{FileName_,ListOfNameValue_}/;
+StringQ[FileName]&&VectorQ[ListOfNameValue[[All,1]],StringQ]]:=
+Module[{str},
+       Print["Writing " <> FileName <> " file"];
+       str= OpenWrite[FileName ];
+       WriteString[str,
+                   StringJoin[Map[ToStringRDump,ListOfNameValue]]];
+Close[str]];
+#+END_SRC
+
+Usage example:
+
+#+BEGIN_SRC mathematica
+v=Table[Random[],{i,1,3}];
+M=Table[Random[],{i,1,2},{j,1,4}];
+
+ExportRDump[{"test.data.R",
+   {{"sigma",1},
+    {"v",v},
+    {"M",M}}}];
+#+END_SRC
+
+will create the ASCII file *test.data.R*:
+
+#+BEGIN_EXAMPLE
+sigma <- 1 
+v <- c(0.8914424568109295, 0.16369644806632871,
+0.8224818003409107) 
+M <- structure(c(0.1953095908232137,
+0.5654916252654406, 0.9973146784469278, 0.3912859635579676,
+0.11095601398483428, 0.15813096143059435, 0.3588746131035059,
+0.15208129825920863), .Dim = c(2, 4))
+#+END_EXAMPLE
+

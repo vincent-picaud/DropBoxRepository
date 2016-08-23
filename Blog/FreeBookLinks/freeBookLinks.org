@@ -78,3 +78,5 @@ To be updated randomly...
 - [[http://www.montefiore.ulg.ac.be/~glouppe/pdf/phd-thesis.pdf][Understanding Random Forests, G. Louppe]]
 
   Very pleasant to read!
+
+- [[http://arxiv.org/abs/1608.04481][Lecture Notes on Randomized Linear Algebra, M. W. Mahoney, 2013]]
