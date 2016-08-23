@@ -61,6 +61,9 @@ To be updated randomly...
 
   R.I.P.
 
+** Computing
+
+- [[https://www.gnu.org/software/emacs/manual/eintr.html][An Introduction to Programming in Emacs Lisp]]
 
 * PhD / Reports
 
@@ -73,7 +76,6 @@ To be updated randomly...
 - [[http://www.cs.toronto.edu/~duvenaud/thesis.pdf][Automatic Model Construction with Gaussian Processes, D. Duvenaud]]
 
 - [[http://arxiv.org/abs/1408.0952][A Primer on Reproducing Kernel Hilbert Spaces, Jonathan H. Manton, Pierre-Olivier Amblard]]
-
 
 - [[http://www.montefiore.ulg.ac.be/~glouppe/pdf/phd-thesis.pdf][Understanding Random Forests, G. Louppe]]
 
