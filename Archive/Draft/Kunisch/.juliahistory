@@ -1,6 +1,0 @@
-workspace()
-include("/IS006139/home/pix/GitHub/DropBoxRepository/Blog/Kunisch/demo.jl")
-worksapce(); include("/IS006139/home/pix/GitHub/DropBoxRepository/Blog/Kunisch/demo.jl")
-workspace(); include("/IS006139/home/pix/GitHub/DropBoxRepository/Blog/Kunisch/demo.jl")
-kunisch(Q,q,lb,ub,50,6)
-kunisch(Q,q,lb,ub,50,7)
