@@ -26,6 +26,20 @@ To be updated randomly...
   A collection of selected monographs with expired copyrights chosen
   from the mathematics field.
 
+- Nuit Blanche blog
+
+  - [[http://nuit-blanche.blogspot.fr/p/reference-page.html][Highly Technical Reference Pages - Aggregators]]
+
+	A collection of links on Machine Learning, Random Forest, Compressed Sensing...
+
+  - [[https://sites.google.com/site/igorcarron2/cs][Compressive Sensing: The Big Picture]]
+
+	Annotated bibliography about Compressed Sensing, also contains pointers to algorithm implementations.
+
+- [[http://stackoverflow.com/questions/388242/the-definitive-c-book-guide-and-list][The Definitive C++ Book Guide and List]]
+
+  Fiew are free, but this C++ book list is interesting.
+
 * Individual links
 
 ** Signal processing
@@ -63,7 +77,18 @@ To be updated randomly...
 
 ** Computing
 
+- [[http://www.catb.org/esr/writings/taoup/html/][The Art of Unix Programming]]
+
+  A must read! A pdf version can be found [[http://catb.org/esr/writings/taoup/html/graphics/taoup.pdf][here.]]
+
 - [[https://www.gnu.org/software/emacs/manual/eintr.html][An Introduction to Programming in Emacs Lisp]]
+
+
+** Maths
+
+- [[http://bass.math.uconn.edu/lecture.html][Real Analysis for Graduate Students, Richard F. Bass]]
+ 
+  And other ressources: Stochastic Processes, Functional analysis...
 
 * PhD / Reports
 
@@ -82,3 +107,7 @@ To be updated randomly...
   Very pleasant to read!
 
 - [[http://arxiv.org/abs/1608.04481][Lecture Notes on Randomized Linear Algebra, M. W. Mahoney, 2013]]
+
+- [[https://arxiv.org/abs/1603.04929][Statistical Inference, K. Zuev]]
+
+  A really nice, concice and pedagogical lecture notes on Statistics
