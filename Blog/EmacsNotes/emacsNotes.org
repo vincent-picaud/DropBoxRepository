@@ -98,6 +98,56 @@ Enter (for example):
 
 to suppress *method deprecation warnings* and *bounds checks*.
 
+** Mathematica
+
+Under Linux, by default I have some problems with cut/copy from
+Mathematica to Emacs. I do not know the detail, but this problem was
+solved by installing the *xclip* Emacs package.
+
+For Mathematica editing *mode*, there is the good *wolfram-mode* emacs package.
+
+To use Mathematica with org-babel there is [[https://github.com/overtone/emacs-live/blob/master/packs/stable/org-pack/lib/org-mode/contrib/lisp/ob-mathematica.el][ob-mathematica.el]], however I have modified the way it evaluates Mathematica expressions:
+
+#+BEGIN_SRC lisp
+(defun org-babel-expand-body:mathematica (body params)
+  "Expand BODY according to PARAMS, return the expanded body."
+  (let ((vars (mapcar #'cdr (org-babel-get-header params :var))))
+    (concat
+     (mapconcat ;; define any variables
+      (lambda (pair)
+	(format "%s=%s;"
+		(car pair)
+		(org-babel-mathematica-var-to-mathematica (cdr pair))))
+      ;;
+      ;; vars "\n") "\nPrint[\n" body "\n]\n")))
+      ;;
+      vars "\n") "\n" body "\n")))
+#+END_SRC
+
+The reason is that encapsulating all the instructions in one line can cause problems. For instance:
+#+BEGIN_SRC mathematica :exports both
+Needs["Units`"]; ConvertTemperature[20, Fahrenheit, Centigrade]
+#+END_SRC
+
+#+RESULTS:
+: Centigrade::shdw: Symbol Centigrade appears in multiple contexts {Units`, Global`}; definitions in context Units` may shadow or be shadowed by other definitions.
+: 
+: ConvertTemperature::shdw: Symbol ConvertTemperature appears in multiple contexts {Units`, Global`}; definitions in context Units` may shadow or be shadowed by other definitions.
+: 
+: Fahrenheit::shdw: Symbol Fahrenheit appears in multiple contexts {Units`, Global`}; definitions in context Units` may shadow or be shadowed by other definitions.
+
+With the modified *org-babel-expand-body:mathematica* function you do
+not have this problem anymore. However, now you have to explicitly print what
+you want as output. 
+
+#+BEGIN_SRC mathematica :exports both
+Needs["Units`"];
+Print[ConvertTemperature[20, Fahrenheit, Centigrade]]
+#+END_SRC 
+
+#+RESULTS:
+: -20/3
+
 * Going faster
 
 ** Fast separator
@@ -112,8 +162,25 @@ Simply type:
 - *C-U C-U ~*
 - *C-U C-U C-U =*
 
+
+** Search a word under the cursor
+
+*C-s* is well known to initiate a forward search, however if you do
+ *C-s C-w* you can directly search for the words under the cursor (you
+ can type *C-w* several times if required).
+
 ** Format your line / comment
 Simply use *M-Q*
+
+** Navigate through buffers
+
+The classical *C-x 0*, *C-x 1*, *C-x 2*, *C-x 3* to split screen, *C-x
+O* to move between them, the *C-x +* to equalize their sizes and the
+*C-x K* to kill one.
+
+Also note that if you want to kill several buffers you can do *C-x
+C-b*, select the buffers you want to close with *d* (and the cursor),
+then press *x*.
 
 ** Insert shell command in your buffer
 
