@@ -250,7 +250,7 @@ separator char *which are enclosed* by the quotes by another character.
 You can do that with (here we replace ',' by '_', this is the last ",/\1_")
 
 #+BEGIN_SRC sh :exports code
-cat tricky.csv | sed ':a;s/^\(\([^"]*"[^"]*"[^"]*\)*[^"]*"[^"]*\),/\1_/;ta' > cleaned_tricky.csv
+cat tricky.csv | awk 'BEGIN{FS=OFS="\""} {for(i=2;i<NF;i+=2)gsub(",","_",$i)} 1' > cleaned_tricky.csv
 #+END_SRC
 
 #+RESULTS:
@@ -258,7 +258,7 @@ cat tricky.csv | sed ':a;s/^\(\([^"]*"[^"]*"[^"]*\)*[^"]*"[^"]*\),/\1_/;ta' > cl
 you will get
 
 #+BEGIN_SRC sh :results verbatim :exports results
-cat tricky.csv | sed ':a;s/^\(\([^"]*"[^"]*"[^"]*\)*[^"]*"[^"]*\),/\1_/;ta'
+cat cleaned_tricky.csv
 #+END_SRC
 
 #+RESULTS:
@@ -282,7 +282,7 @@ I found this trick on [[http://stackoverflow.com/questions/14916159/sed-replace-
 At any moment you can reconstruct the file with its initial separators:
 
 #+BEGIN_SRC sh :results verbatim :exports both
-cat cleaned_tricky.csv | sed ':a;s/^\(\([^"]*"[^"]*"[^"]*\)*[^"]*"[^"]*\)_/\1,/;ta'
+cat cleaned_tricky.csv | awk 'BEGIN{FS=OFS="\""} {for(i=2;i<NF;i+=2)gsub("_",",",$i)} 1'
 #+END_SRC
 
 #+RESULTS:
