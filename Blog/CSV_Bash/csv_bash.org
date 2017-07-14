@@ -7,7 +7,6 @@
 #+DESCRIPTION:
 #+TITLE: CSV files and bash 
 #+PROPERTY: header-args    :exports both
-
 Recently I was asked to inspect with urgency a *14Gb* CSV file. The
 most effective way I found was to directly use *bash shell*. The small
 scripts I wrote usually took 2 or 3 minutes to process the file.
@@ -55,13 +54,9 @@ Generally the first task is to clean the CSV file:
 cat insurance.csv | grep -v "^#" | sed '/^ *$/d' | sed "1 d" > cleaned_insurance.csv
 #+END_SRC
 
-#+RESULTS:
-
 - grep -v "^#" removes comments
 - sed '/^ *$/d' removes empty lines (only spaces, if you want to include tab use ^[ \t])
 - sed "1 d" removes the first line (header if any)
-
-#+RESULTS:
 
 you get something like:
 
@@ -70,6 +65,13 @@ head -7 cleaned_insurance.csv
 #+END_SRC
 
 #+RESULTS:
+: 19,female,27.9,0,yes,southwest,16884.924
+: 18,male,33.77,1,no,southeast,1725.5523
+: 28,male,33,3,no,southeast,4449.462
+: 33,male,22.705,0,no,northwest,21984.47061
+: 32,male,28.88,0,no,northwest,3866.8552
+: 31,female,25.74,0,no,southeast,3756.6216
+: 46,female,33.44,1,no,southeast,8240.5896
 
 * Number of rows
 
